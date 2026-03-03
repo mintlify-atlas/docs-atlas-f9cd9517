@@ -1,0 +1,194 @@
+---
+title: News API
+description: Access real-time and historical news articles across companies, countries, and categories
+---
+
+# News API
+
+The News API provides access to real-time and historical news articles from various sources. Retrieve general market news, company-specific news, country-focused news, or filter by category.
+
+## Methods
+
+### general()
+
+Retrieve general market news and latest headlines.
+
+```typescript
+const axion = new Axion('your-api-key');
+const news = await axion.news.general();
+```
+
+**Returns:** `Promise<ApiResponse>`
+
+General market news including latest headlines across all sectors and markets.
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "title": "Markets Rally on Economic Data",
+      "source": "Financial Times",
+      "publishedAt": "2026-03-03T10:30:00Z",
+      "url": "https://...",
+      "summary": "Global markets showed strong gains..."
+    }
+  ]
+}
+```
+
+---
+
+### company()
+
+Get news articles specific to a company.
+
+```typescript
+const news = await axion.news.company('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'TSLA', 'GOOGL')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+News articles related to the specified company, including press releases, earnings announcements, and media coverage.
+
+**Example:**
+
+```typescript
+const appleNews = await axion.news.company('AAPL');
+console.log(appleNews.data);
+```
+
+---
+
+### country()
+
+Retrieve news filtered by country.
+
+```typescript
+const news = await axion.news.country('US');
+```
+
+<ParamField path="country" type="string" required>
+  The country code (e.g., 'US', 'GB', 'JP', 'DE')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+News articles relevant to the specified country, including economic reports, political developments, and market news.
+
+**Example:**
+
+```typescript
+const ukNews = await axion.news.country('GB');
+const usNews = await axion.news.country('US');
+```
+
+---
+
+### category()
+
+Get news articles filtered by category.
+
+```typescript
+const news = await axion.news.category('technology');
+```
+
+<ParamField path="category" type="string" required>
+  The news category (e.g., 'technology', 'finance', 'energy', 'healthcare')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+News articles within the specified category or sector.
+
+**Example:**
+
+```typescript
+const techNews = await axion.news.category('technology');
+const energyNews = await axion.news.category('energy');
+const financeNews = await axion.news.category('finance');
+```
+
+## Use Cases
+
+### Market News Monitor
+
+Track breaking news across markets:
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get general market news
+const generalNews = await axion.news.general();
+
+// Get technology sector news
+const techNews = await axion.news.category('technology');
+
+// Combine for comprehensive market view
+const allNews = [...generalNews.data, ...techNews.data];
+```
+
+### Company News Tracker
+
+Monitor news for your portfolio:
+
+```typescript
+const portfolio = ['AAPL', 'MSFT', 'GOOGL', 'TSLA'];
+
+const newsPromises = portfolio.map(ticker => 
+  axion.news.company(ticker)
+);
+
+const portfolioNews = await Promise.all(newsPromises);
+
+portfolioNews.forEach((news, index) => {
+  console.log(`${portfolio[index]}: ${news.data.length} articles`);
+});
+```
+
+### Regional News Analysis
+
+Analyze news sentiment across different regions:
+
+```typescript
+const regions = ['US', 'GB', 'JP', 'DE', 'CN'];
+
+for (const country of regions) {
+  const news = await axion.news.country(country);
+  console.log(`${country}: ${news.data.length} articles`);
+  
+  // Further process news for sentiment analysis
+  const headlines = news.data.map(article => article.title);
+}
+```
+
+### Sector Rotation Strategy
+
+Monitor news across sectors to identify trends:
+
+```typescript
+const sectors = [
+  'technology',
+  'finance',
+  'healthcare',
+  'energy',
+  'consumer'
+];
+
+const sectorNews = {};
+
+for (const sector of sectors) {
+  const news = await axion.news.category(sector);
+  sectorNews[sector] = news.data;
+}
+
+// Analyze which sectors are getting the most coverage
+Object.entries(sectorNews).forEach(([sector, articles]) => {
+  console.log(`${sector}: ${articles.length} articles`);
+});
+```

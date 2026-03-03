@@ -1,0 +1,112 @@
+---
+title: ProfilesAPI
+description: Company profiles, statistics, and summaries
+---
+
+## profile()
+
+```typescript
+profile(ticker: string): Promise<ApiResponse>
+```
+
+Get company profile information.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const profile = await client.profiles.profile('AAPL');
+```
+
+## recommendation()
+
+```typescript
+recommendation(ticker: string): Promise<ApiResponse>
+```
+
+Get analyst recommendation trends.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const recs = await client.profiles.recommendation('AAPL');
+```
+
+## statistics()
+
+```typescript
+statistics(ticker: string): Promise<ApiResponse>
+```
+
+Get key statistics for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const stats = await client.profiles.statistics('AAPL');
+```
+
+## summary()
+
+```typescript
+summary(ticker: string): Promise<ApiResponse>
+```
+
+Get summary details for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const summary = await client.profiles.summary('AAPL');
+```
+
+## calendar()
+
+```typescript
+calendar(ticker: string): Promise<ApiResponse>
+```
+
+Get calendar events including earnings and dividends.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const events = await client.profiles.calendar('AAPL');
+```
+
+## info()
+
+```typescript
+info(ticker: string): Promise<ApiResponse>
+```
+
+Get company information and summary profile.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.profiles.info('AAPL');
+```

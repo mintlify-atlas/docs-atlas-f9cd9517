@@ -1,0 +1,73 @@
+---
+title: CryptoAPI
+description: Cryptocurrency data and price history
+---
+
+## tickers()
+
+```typescript
+tickers(params?: { type?: string }): Promise<ApiResponse>
+```
+
+Get list of available cryptocurrency tickers.
+
+<ParamField path="params.type" type="string" optional>
+  Filter by crypto type
+</ParamField>
+
+### Example
+
+```typescript
+const tickers = await client.crypto.tickers();
+```
+
+## ticker()
+
+```typescript
+ticker(ticker: string): Promise<ApiResponse>
+```
+
+Get detailed information for a specific cryptocurrency.
+
+<ParamField path="ticker" type="string" required>
+  Cryptocurrency ticker symbol (e.g., "BTC")
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.crypto.ticker('BTC');
+```
+
+## prices()
+
+```typescript
+prices(ticker: string, params?: { from?: string, to?: string, frame?: string }): Promise<ApiResponse>
+```
+
+Get historical price data for a cryptocurrency.
+
+<ParamField path="ticker" type="string" required>
+  Cryptocurrency ticker symbol
+</ParamField>
+
+<ParamField path="params.from" type="string" optional>
+  Start date for price history
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for price history
+</ParamField>
+
+<ParamField path="params.frame" type="string" optional>
+  Time frame (e.g., "1d", "1h")
+</ParamField>
+
+### Example
+
+```typescript
+const prices = await client.crypto.prices('BTC', {
+  from: '2024-01-01',
+  frame: '1h'
+});
+```

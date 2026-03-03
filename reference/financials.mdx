@@ -1,0 +1,244 @@
+---
+title: FinancialsAPI
+description: Financial statements and metrics
+---
+
+## revenue()
+
+```typescript
+revenue(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get revenue data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+### Example
+
+```typescript
+const revenue = await client.financials.revenue('AAPL', { periods: 8 });
+```
+
+## netIncome()
+
+```typescript
+netIncome(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get net income data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+### Example
+
+```typescript
+const netIncome = await client.financials.netIncome('AAPL');
+```
+
+## totalAssets()
+
+```typescript
+totalAssets(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get total assets data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## totalLiabilities()
+
+```typescript
+totalLiabilities(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get total liabilities data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## stockholdersEquity()
+
+```typescript
+stockholdersEquity(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get stockholders equity data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## currentAssets()
+
+```typescript
+currentAssets(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get current assets data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## currentLiabilities()
+
+```typescript
+currentLiabilities(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get current liabilities data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## operatingCashFlow()
+
+```typescript
+operatingCashFlow(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get operating cash flow data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## capitalExpenditures()
+
+```typescript
+capitalExpenditures(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get capital expenditures data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## freeCashFlow()
+
+```typescript
+freeCashFlow(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get free cash flow data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## sharesOutstandingBasic()
+
+```typescript
+sharesOutstandingBasic(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get basic shares outstanding data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## sharesOutstandingDiluted()
+
+```typescript
+sharesOutstandingDiluted(ticker: string, params?: { periods?: number }): Promise<ApiResponse>
+```
+
+Get diluted shares outstanding data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.periods" type="number" optional>
+  Number of periods to return
+</ParamField>
+
+## metrics()
+
+```typescript
+metrics(ticker: string): Promise<ApiResponse>
+```
+
+Get calculated financial metrics.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const metrics = await client.financials.metrics('AAPL');
+```
+
+## snapshot()
+
+```typescript
+snapshot(ticker: string): Promise<ApiResponse>
+```
+
+Get financial data snapshot.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const snapshot = await client.financials.snapshot('AAPL');
+```

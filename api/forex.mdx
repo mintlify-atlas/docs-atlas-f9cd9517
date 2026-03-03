@@ -1,0 +1,308 @@
+---
+title: 'Forex API'
+description: 'Access foreign exchange market data including currency pairs and historical rates'
+---
+
+## Overview
+
+The Forex API provides real-time and historical data for foreign exchange currency pairs, enabling currency conversion, rate tracking, and forex market analysis.
+
+## Methods
+
+### tickers()
+
+Retrieve a list of available forex currency pairs with optional filtering.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all forex pairs
+const allPairs = await axion.forex.tickers();
+
+// Filter by country
+const usPairs = await axion.forex.tickers({ country: 'US' });
+
+// Filter by exchange
+const exchangePairs = await axion.forex.tickers({ exchange: 'FOREX' });
+```
+
+<ParamField path="country" type="string" optional>
+  Filter currency pairs by country code
+</ParamField>
+
+<ParamField path="exchange" type="string" optional>
+  Filter by exchange or trading venue
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of forex pair objects
+  <ResponseField name="ticker" type="string">
+    Currency pair symbol (e.g., 'EUR/USD', 'GBP/JPY')
+  </ResponseField>
+  <ResponseField name="base" type="string">
+    Base currency code
+  </ResponseField>
+  <ResponseField name="quote" type="string">
+    Quote currency code
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the currency pair
+  </ResponseField>
+</ResponseField>
+
+### ticker()
+
+Get detailed information about a specific forex currency pair.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get EUR/USD data
+const eurUsd = await axion.forex.ticker('EURUSD');
+
+// Get GBP/JPY data
+const gbpJpy = await axion.forex.ticker('GBPJPY');
+
+// Get USD/CHF data
+const usdChf = await axion.forex.ticker('USDCHF');
+```
+
+<ParamField path="ticker" type="string" required>
+  The forex pair symbol (e.g., 'EURUSD', 'GBPJPY', 'USDJPY')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed forex pair information
+  <ResponseField name="ticker" type="string">
+    Currency pair symbol
+  </ResponseField>
+  <ResponseField name="rate" type="number">
+    Current exchange rate
+  </ResponseField>
+  <ResponseField name="bid" type="number">
+    Bid price
+  </ResponseField>
+  <ResponseField name="ask" type="number">
+    Ask price
+  </ResponseField>
+  <ResponseField name="spread" type="number">
+    Bid-ask spread
+  </ResponseField>
+  <ResponseField name="change" type="number">
+    Rate change
+  </ResponseField>
+  <ResponseField name="changePercent" type="number">
+    Percentage change
+  </ResponseField>
+  <ResponseField name="high24h" type="number">
+    24-hour high
+  </ResponseField>
+  <ResponseField name="low24h" type="number">
+    24-hour low
+  </ResponseField>
+</ResponseField>
+
+### prices()
+
+Retrieve historical exchange rate data for a currency pair with optional date range and time frame.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all available historical rates
+const allRates = await axion.forex.prices('EURUSD');
+
+// Get rates for a specific date range
+const rangedRates = await axion.forex.prices('EURUSD', {
+  from: '2024-01-01',
+  to: '2024-12-31'
+});
+
+// Get daily rates
+const dailyRates = await axion.forex.prices('GBPUSD', {
+  from: '2024-01-01',
+  to: '2024-12-31',
+  frame: 'daily'
+});
+
+// Get weekly rates for analysis
+const weeklyRates = await axion.forex.prices('USDJPY', {
+  from: '2023-01-01',
+  to: '2024-01-01',
+  frame: 'weekly'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The forex pair symbol (e.g., 'EURUSD', 'GBPJPY', 'USDJPY')
+</ParamField>
+
+<ParamField path="from" type="string" optional>
+  Start date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="to" type="string" optional>
+  End date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="frame" type="string" optional>
+  Time frame for rate data ('hourly', 'daily', 'weekly', 'monthly')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of historical rate points
+  <ResponseField name="timestamp" type="string">
+    Timestamp of the rate point
+  </ResponseField>
+  <ResponseField name="open" type="number">
+    Opening rate
+  </ResponseField>
+  <ResponseField name="high" type="number">
+    Highest rate
+  </ResponseField>
+  <ResponseField name="low" type="number">
+    Lowest rate
+  </ResponseField>
+  <ResponseField name="close" type="number">
+    Closing rate
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Trading volume
+  </ResponseField>
+</ResponseField>
+
+## Example: Currency Converter
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function convertCurrency(
+  amount: number,
+  fromCurrency: string,
+  toCurrency: string
+) {
+  const pair = `${fromCurrency}${toCurrency}`;
+  const data = await axion.forex.ticker(pair);
+  
+  const convertedAmount = amount * data.data.rate;
+  
+  return {
+    from: fromCurrency,
+    to: toCurrency,
+    rate: data.data.rate,
+    originalAmount: amount,
+    convertedAmount: convertedAmount,
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Convert 1000 USD to EUR
+const result = await convertCurrency(1000, 'USD', 'EUR');
+console.log(`${result.originalAmount} ${result.from} = ${result.convertedAmount.toFixed(2)} ${result.to}`);
+console.log(`Exchange rate: ${result.rate}`);
+```
+
+## Example: Exchange Rate Monitor
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function monitorExchangeRates(pairs: string[]) {
+  const rates = [];
+
+  for (const pair of pairs) {
+    const data = await axion.forex.ticker(pair);
+    
+    rates.push({
+      pair: pair,
+      rate: data.data.rate,
+      change: data.data.change,
+      changePercent: data.data.changePercent,
+      bid: data.data.bid,
+      ask: data.data.ask,
+      spread: data.data.spread
+    });
+  }
+
+  return rates;
+}
+
+// Monitor major currency pairs
+const majorPairs = await monitorExchangeRates([
+  'EURUSD',
+  'GBPUSD',
+  'USDJPY',
+  'USDCHF'
+]);
+
+majorPairs.forEach(p => {
+  console.log(`${p.pair}: ${p.rate} (${p.changePercent > 0 ? '+' : ''}${p.changePercent.toFixed(2)}%)`);
+  console.log(`  Bid: ${p.bid} | Ask: ${p.ask} | Spread: ${p.spread}`);
+});
+```
+
+## Example: Historical Rate Analysis
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeRateTrend(pair: string, days: number) {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const prices = await axion.forex.prices(pair, {
+    from: startDate.toISOString().split('T')[0],
+    to: endDate.toISOString().split('T')[0],
+    frame: 'daily'
+  });
+  
+  const rates = prices.data.map(p => p.close);
+  const avgRate = rates.reduce((sum, r) => sum + r, 0) / rates.length;
+  const minRate = Math.min(...rates);
+  const maxRate = Math.max(...rates);
+  const currentRate = rates[rates.length - 1];
+  const startRate = rates[0];
+  const change = ((currentRate - startRate) / startRate) * 100;
+  
+  return {
+    pair,
+    period: `${days} days`,
+    currentRate,
+    avgRate,
+    minRate,
+    maxRate,
+    changePercent: change
+  };
+}
+
+// Analyze EUR/USD over the last 30 days
+const analysis = await analyzeRateTrend('EURUSD', 30);
+console.log(`${analysis.pair} Analysis (${analysis.period}):`);
+console.log(`Current: ${analysis.currentRate}`);
+console.log(`Average: ${analysis.avgRate.toFixed(4)}`);
+console.log(`Range: ${analysis.minRate.toFixed(4)} - ${analysis.maxRate.toFixed(4)}`);
+console.log(`Change: ${analysis.changePercent > 0 ? '+' : ''}${analysis.changePercent.toFixed(2)}%`);
+```
+
+## Error Handling
+
+```typescript
+try {
+  const data = await axion.forex.ticker('INVALID');
+} catch (error) {
+  if (error.message.includes('HTTP Error 404')) {
+    console.error('Currency pair not found');
+  } else if (error.message.includes('Authentication required')) {
+    console.error('API key is required');
+  } else {
+    console.error('An error occurred:', error.message);
+  }
+}
+```

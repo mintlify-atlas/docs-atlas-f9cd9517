@@ -1,0 +1,335 @@
+---
+title: 'Futures API'
+description: 'Access futures market data including contracts, quotes, and historical prices'
+---
+
+## Overview
+
+The Futures API provides comprehensive data for futures contracts across commodities, indices, currencies, and other asset classes.
+
+## Methods
+
+### tickers()
+
+Retrieve a list of available futures contracts with optional filtering by exchange.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all futures contracts
+const allFutures = await axion.futures.tickers();
+
+// Filter by exchange
+const cmeFutures = await axion.futures.tickers({ exchange: 'CME' });
+
+// Get ICE futures
+const iceFutures = await axion.futures.tickers({ exchange: 'ICE' });
+```
+
+<ParamField path="exchange" type="string" optional>
+  Filter futures contracts by exchange (e.g., 'CME', 'ICE', 'EUREX')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of futures contract objects
+  <ResponseField name="ticker" type="string">
+    Futures contract symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the futures contract
+  </ResponseField>
+  <ResponseField name="exchange" type="string">
+    Exchange where the contract is traded
+  </ResponseField>
+  <ResponseField name="assetClass" type="string">
+    Asset class (commodity, index, currency, etc.)
+  </ResponseField>
+  <ResponseField name="expirationDate" type="string">
+    Contract expiration date
+  </ResponseField>
+</ResponseField>
+
+### ticker()
+
+Get detailed information about a specific futures contract.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get crude oil futures data
+const crudeFutures = await axion.futures.ticker('CL');
+
+// Get gold futures data
+const goldFutures = await axion.futures.ticker('GC');
+
+// Get S&P 500 E-mini futures
+const spFutures = await axion.futures.ticker('ES');
+```
+
+<ParamField path="ticker" type="string" required>
+  The futures contract symbol (e.g., 'CL', 'GC', 'ES')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed futures contract information
+  <ResponseField name="ticker" type="string">
+    Futures contract symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the contract
+  </ResponseField>
+  <ResponseField name="price" type="number">
+    Current price
+  </ResponseField>
+  <ResponseField name="change" type="number">
+    Price change
+  </ResponseField>
+  <ResponseField name="changePercent" type="number">
+    Percentage change
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Trading volume
+  </ResponseField>
+  <ResponseField name="openInterest" type="number">
+    Open interest
+  </ResponseField>
+  <ResponseField name="settlementPrice" type="number">
+    Settlement price
+  </ResponseField>
+  <ResponseField name="expirationDate" type="string">
+    Contract expiration date
+  </ResponseField>
+</ResponseField>
+
+### prices()
+
+Retrieve historical price data for a futures contract with optional date range and time frame.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all available historical prices
+const allPrices = await axion.futures.prices('CL');
+
+// Get prices for a specific date range
+const rangedPrices = await axion.futures.prices('GC', {
+  from: '2024-01-01',
+  to: '2024-12-31'
+});
+
+// Get daily prices
+const dailyPrices = await axion.futures.prices('ES', {
+  from: '2024-01-01',
+  to: '2024-12-31',
+  frame: 'daily'
+});
+
+// Get weekly prices for analysis
+const weeklyPrices = await axion.futures.prices('NG', {
+  from: '2023-01-01',
+  to: '2024-01-01',
+  frame: 'weekly'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The futures contract symbol (e.g., 'CL', 'GC', 'ES')
+</ParamField>
+
+<ParamField path="from" type="string" optional>
+  Start date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="to" type="string" optional>
+  End date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="frame" type="string" optional>
+  Time frame for price data ('daily', 'weekly', 'monthly')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of historical price points
+  <ResponseField name="date" type="string">
+    Date of the price point
+  </ResponseField>
+  <ResponseField name="open" type="number">
+    Opening price
+  </ResponseField>
+  <ResponseField name="high" type="number">
+    Highest price
+  </ResponseField>
+  <ResponseField name="low" type="number">
+    Lowest price
+  </ResponseField>
+  <ResponseField name="close" type="number">
+    Closing price
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Trading volume
+  </ResponseField>
+  <ResponseField name="openInterest" type="number">
+    Open interest at this date
+  </ResponseField>
+</ResponseField>
+
+## Example: Commodity Futures Tracker
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function trackCommodities(contracts: string[]) {
+  const commodities = [];
+
+  for (const contract of contracts) {
+    const data = await axion.futures.ticker(contract);
+    
+    commodities.push({
+      contract: contract,
+      name: data.data.name,
+      price: data.data.price,
+      change: data.data.change,
+      changePercent: data.data.changePercent,
+      volume: data.data.volume,
+      openInterest: data.data.openInterest,
+      expiration: data.data.expirationDate
+    });
+  }
+
+  return commodities;
+}
+
+// Track energy and metals
+const commodityData = await trackCommodities(['CL', 'NG', 'GC', 'SI']);
+
+commodityData.forEach(c => {
+  console.log(`${c.name} (${c.contract}):`);
+  console.log(`  Price: $${c.price} (${c.changePercent > 0 ? '+' : ''}${c.changePercent.toFixed(2)}%)`);
+  console.log(`  Volume: ${c.volume.toLocaleString()}`);
+  console.log(`  Open Interest: ${c.openInterest.toLocaleString()}`);
+  console.log(`  Expires: ${c.expiration}`);
+});
+```
+
+## Example: Futures Spread Analysis
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeSpread(contract1: string, contract2: string, days: number) {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const [prices1, prices2] = await Promise.all([
+    axion.futures.prices(contract1, {
+      from: startDate.toISOString().split('T')[0],
+      to: endDate.toISOString().split('T')[0],
+      frame: 'daily'
+    }),
+    axion.futures.prices(contract2, {
+      from: startDate.toISOString().split('T')[0],
+      to: endDate.toISOString().split('T')[0],
+      frame: 'daily'
+    })
+  ]);
+  
+  const spreads = prices1.data.map((p1, i) => {
+    const p2 = prices2.data[i];
+    return {
+      date: p1.date,
+      spread: p1.close - p2.close
+    };
+  });
+  
+  const currentSpread = spreads[spreads.length - 1].spread;
+  const avgSpread = spreads.reduce((sum, s) => sum + s.spread, 0) / spreads.length;
+  const maxSpread = Math.max(...spreads.map(s => s.spread));
+  const minSpread = Math.min(...spreads.map(s => s.spread));
+  
+  return {
+    contract1,
+    contract2,
+    currentSpread,
+    avgSpread,
+    maxSpread,
+    minSpread,
+    period: `${days} days`
+  };
+}
+
+// Analyze crude oil vs natural gas spread
+const spreadAnalysis = await analyzeSpread('CL', 'NG', 30);
+console.log(`${spreadAnalysis.contract1}/${spreadAnalysis.contract2} Spread Analysis:`);
+console.log(`Current: $${spreadAnalysis.currentSpread.toFixed(2)}`);
+console.log(`Average: $${spreadAnalysis.avgSpread.toFixed(2)}`);
+console.log(`Range: $${spreadAnalysis.minSpread.toFixed(2)} - $${spreadAnalysis.maxSpread.toFixed(2)}`);
+```
+
+## Example: Futures Calendar Monitor
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function monitorExpirations(exchange: string) {
+  const futures = await axion.futures.tickers({ exchange });
+  
+  const today = new Date();
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  
+  const expiringSoon = [];
+  
+  for (const future of futures.data) {
+    const expirationDate = new Date(future.expirationDate);
+    
+    if (expirationDate >= today && expirationDate <= thirtyDaysFromNow) {
+      const data = await axion.futures.ticker(future.ticker);
+      
+      expiringSoon.push({
+        ticker: future.ticker,
+        name: future.name,
+        expirationDate: future.expirationDate,
+        daysUntilExpiration: Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
+        currentPrice: data.data.price,
+        openInterest: data.data.openInterest
+      });
+    }
+  }
+  
+  return expiringSoon.sort((a, b) => a.daysUntilExpiration - b.daysUntilExpiration);
+}
+
+// Monitor CME contracts expiring in the next 30 days
+const expiringContracts = await monitorExpirations('CME');
+
+console.log('Futures Expiring in Next 30 Days:');
+expiringContracts.forEach(c => {
+  console.log(`${c.name} (${c.ticker}):`);
+  console.log(`  Expires: ${c.expirationDate} (${c.daysUntilExpiration} days)`);
+  console.log(`  Price: $${c.currentPrice}`);
+  console.log(`  Open Interest: ${c.openInterest.toLocaleString()}`);
+});
+```
+
+## Error Handling
+
+```typescript
+try {
+  const data = await axion.futures.ticker('INVALID');
+} catch (error) {
+  if (error.message.includes('HTTP Error 404')) {
+    console.error('Futures contract not found');
+  } else if (error.message.includes('Authentication required')) {
+    console.error('API key is required');
+  } else {
+    console.error('An error occurred:', error.message);
+  }
+}
+```

@@ -1,0 +1,282 @@
+---
+title: Sentiment API
+description: Analyze market sentiment from social media, news, and analyst reports
+---
+
+# Sentiment API
+
+The Sentiment API provides comprehensive sentiment analysis across multiple data sources including social media, news articles, and analyst reports. Use sentiment data to gauge market mood and inform trading decisions.
+
+## Methods
+
+### all()
+
+Retrieve aggregated sentiment data from all sources.
+
+```typescript
+const axion = new Axion('your-api-key');
+const sentiment = await axion.sentiment.all('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'TSLA', 'MSFT')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Combined sentiment scores from social media, news, and analyst sources, providing a comprehensive view of market sentiment.
+
+**Example:**
+
+```typescript
+const appleSentiment = await axion.sentiment.all('AAPL');
+console.log(appleSentiment.data);
+// {
+//   "overall": 0.72,
+//   "social": 0.68,
+//   "news": 0.75,
+//   "analyst": 0.73,
+//   "trend": "positive"
+// }
+```
+
+---
+
+### social()
+
+Get sentiment derived from social media platforms.
+
+```typescript
+const sentiment = await axion.sentiment.social('TSLA');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Sentiment analysis from social media platforms including Twitter, Reddit, and financial forums. Includes mention volume and sentiment scores.
+
+**Example:**
+
+```typescript
+const teslaSocial = await axion.sentiment.social('TSLA');
+
+if (teslaSocial.data.sentiment > 0.7) {
+  console.log('Strong positive social sentiment');
+} else if (teslaSocial.data.sentiment < 0.3) {
+  console.log('Strong negative social sentiment');
+}
+```
+
+---
+
+### news()
+
+Analyze sentiment from news articles.
+
+```typescript
+const sentiment = await axion.sentiment.news('GOOGL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Sentiment derived from news articles, press releases, and media coverage. Provides sentiment scores and article counts.
+
+**Example:**
+
+```typescript
+const googleNews = await axion.sentiment.news('GOOGL');
+console.log(`News sentiment: ${googleNews.data.sentiment}`);
+console.log(`Article count: ${googleNews.data.articleCount}`);
+```
+
+---
+
+### analyst()
+
+Retrieve sentiment from analyst reports and ratings.
+
+```typescript
+const sentiment = await axion.sentiment.analyst('MSFT');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Sentiment based on analyst ratings, price targets, and recommendation changes. Includes buy/hold/sell ratios and consensus ratings.
+
+**Example:**
+
+```typescript
+const msftAnalyst = await axion.sentiment.analyst('MSFT');
+console.log(msftAnalyst.data);
+// {
+//   "sentiment": 0.8,
+//   "buy": 25,
+//   "hold": 5,
+//   "sell": 2,
+//   "consensus": "Strong Buy"
+// }
+```
+
+## Use Cases
+
+### Multi-Source Sentiment Dashboard
+
+Create a comprehensive sentiment view:
+
+```typescript
+const axion = new Axion('your-api-key');
+const ticker = 'AAPL';
+
+const [allSentiment, social, news, analyst] = await Promise.all([
+  axion.sentiment.all(ticker),
+  axion.sentiment.social(ticker),
+  axion.sentiment.news(ticker),
+  axion.sentiment.analyst(ticker)
+]);
+
+const dashboard = {
+  ticker,
+  overall: allSentiment.data.overall,
+  breakdown: {
+    social: social.data.sentiment,
+    news: news.data.sentiment,
+    analyst: analyst.data.sentiment
+  },
+  consensus: analyst.data.consensus
+};
+
+console.log(dashboard);
+```
+
+### Sentiment Alert System
+
+Monitor sentiment changes and trigger alerts:
+
+```typescript
+const SENTIMENT_THRESHOLD = 0.8;
+const watchlist = ['AAPL', 'MSFT', 'GOOGL', 'AMZN'];
+
+for (const ticker of watchlist) {
+  const sentiment = await axion.sentiment.all(ticker);
+  
+  if (sentiment.data.overall > SENTIMENT_THRESHOLD) {
+    console.log(`🚀 Strong positive sentiment for ${ticker}`);
+    // Send alert or notification
+  } else if (sentiment.data.overall < (1 - SENTIMENT_THRESHOLD)) {
+    console.log(`⚠️ Strong negative sentiment for ${ticker}`);
+    // Send warning notification
+  }
+}
+```
+
+### Social vs News Sentiment Divergence
+
+Identify when social and news sentiment diverge:
+
+```typescript
+const ticker = 'TSLA';
+
+const [social, news] = await Promise.all([
+  axion.sentiment.social(ticker),
+  axion.sentiment.news(ticker)
+]);
+
+const divergence = Math.abs(
+  social.data.sentiment - news.data.sentiment
+);
+
+if (divergence > 0.3) {
+  console.log(`Significant divergence detected for ${ticker}`);
+  console.log(`Social: ${social.data.sentiment}`);
+  console.log(`News: ${news.data.sentiment}`);
+  
+  // This could indicate a disconnect between retail and institutional sentiment
+}
+```
+
+### Analyst Sentiment Tracker
+
+Track analyst sentiment changes over time:
+
+```typescript
+const portfolio = ['AAPL', 'MSFT', 'GOOGL', 'NVDA'];
+
+const analystSentiment = await Promise.all(
+  portfolio.map(ticker => 
+    axion.sentiment.analyst(ticker).then(result => ({
+      ticker,
+      ...result.data
+    }))
+  )
+);
+
+// Sort by analyst consensus
+analystSentiment.sort((a, b) => b.sentiment - a.sentiment);
+
+console.log('Portfolio ranked by analyst sentiment:');
+analystSentiment.forEach(({ ticker, sentiment, consensus }) => {
+  console.log(`${ticker}: ${sentiment} (${consensus})`);
+});
+```
+
+### Sentiment-Based Trade Signals
+
+Generate trade signals based on sentiment thresholds:
+
+```typescript
+interface SentimentSignal {
+  ticker: string;
+  signal: 'buy' | 'sell' | 'hold';
+  confidence: number;
+  reasons: string[];
+}
+
+async function analyzeSentiment(ticker: string): Promise<SentimentSignal> {
+  const [all, social, news, analyst] = await Promise.all([
+    axion.sentiment.all(ticker),
+    axion.sentiment.social(ticker),
+    axion.sentiment.news(ticker),
+    axion.sentiment.analyst(ticker)
+  ]);
+
+  const reasons = [];
+  let signal: 'buy' | 'sell' | 'hold' = 'hold';
+  
+  if (all.data.overall > 0.75) {
+    signal = 'buy';
+    reasons.push('Strong overall positive sentiment');
+  } else if (all.data.overall < 0.25) {
+    signal = 'sell';
+    reasons.push('Strong overall negative sentiment');
+  }
+  
+  if (analyst.data.sentiment > 0.8) {
+    reasons.push(`Analyst consensus: ${analyst.data.consensus}`);
+  }
+  
+  if (social.data.sentiment > 0.8 && news.data.sentiment > 0.8) {
+    reasons.push('Aligned positive sentiment across sources');
+  }
+
+  return {
+    ticker,
+    signal,
+    confidence: all.data.overall,
+    reasons
+  };
+}
+
+const signals = await analyzeSentiment('AAPL');
+console.log(signals);
+```

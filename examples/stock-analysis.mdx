@@ -1,0 +1,327 @@
+---
+title: 'Stock Analysis'
+description: 'Complete example of analyzing stocks with price data, financials, and sentiment'
+icon: 'chart-candlestick'
+---
+
+This example demonstrates how to perform comprehensive stock analysis using the Axion SDK. We'll fetch stock information, historical prices, financial metrics, and sentiment data to create a complete picture of a company's performance.
+
+## Complete Stock Analysis
+
+This example analyzes a stock by combining multiple data sources:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const client = new Axion('your-api-key');
+
+async function analyzeStock(ticker: string) {
+  console.log(`Analyzing ${ticker}...\n`);
+  
+  try {
+    // 1. Get basic stock information
+    console.log('Fetching stock information...');
+    const stockInfo = await client.stocks.ticker(ticker);
+    console.log('Company:', stockInfo.data.name);
+    console.log('Exchange:', stockInfo.data.exchange);
+    console.log('Sector:', stockInfo.data.sector);
+    
+    // 2. Get historical price data
+    console.log('\nFetching price history...');
+    const prices = await client.stocks.prices(ticker, {
+      from: '2024-01-01',
+      to: '2024-01-31',
+      frame: 'daily'
+    });
+    
+    if (prices.data && prices.data.length > 0) {
+      const latestPrice = prices.data[0];
+      const oldestPrice = prices.data[prices.data.length - 1];
+      const priceChange = ((latestPrice.close - oldestPrice.close) / oldestPrice.close) * 100;
+      
+      console.log(`Price range: ${prices.data.length} trading days`);
+      console.log(`Latest close: $${latestPrice.close}`);
+      console.log(`Month change: ${priceChange.toFixed(2)}%`);
+    }
+    
+    // 3. Get company profile and statistics
+    console.log('\nFetching company profile...');
+    const profile = await client.profiles.info(ticker);
+    console.log('Industry:', profile.data.industry);
+    console.log('Employees:', profile.data.fullTimeEmployees);
+    
+    const statistics = await client.profiles.statistics(ticker);
+    console.log('Market Cap:', statistics.data.marketCap);
+    console.log('P/E Ratio:', statistics.data.trailingPE);
+    
+    // 4. Get financial metrics
+    console.log('\nFetching financial data...');
+    const financials = await client.financials.snapshot(ticker);
+    console.log('Revenue (TTM):', financials.data.revenue);
+    console.log('Net Income:', financials.data.netIncome);
+    console.log('Operating Margin:', financials.data.operatingMargin);
+    
+    // 5. Get sentiment analysis
+    console.log('\nFetching sentiment data...');
+    const sentiment = await client.sentiment.all(ticker);
+    console.log('Overall Sentiment:', sentiment.data.overall);
+    console.log('Social Media:', sentiment.data.social);
+    console.log('News Sentiment:', sentiment.data.news);
+    
+    // 6. Get recent news
+    console.log('\nFetching recent news...');
+    const news = await client.news.company(ticker);
+    console.log(`Found ${news.data.length} recent articles`);
+    if (news.data.length > 0) {
+      console.log('Latest:', news.data[0].title);
+    }
+    
+    // 7. Calculate technical indicators
+    console.log('\nCalculating technical indicators...');
+    if (prices.data && prices.data.length >= 20) {
+      const closePrices = prices.data.map(p => p.close);
+      const sma20 = closePrices.slice(0, 20).reduce((a, b) => a + b, 0) / 20;
+      console.log(`20-day SMA: $${sma20.toFixed(2)}`);
+      console.log(`Current vs SMA: ${((closePrices[0] - sma20) / sma20 * 100).toFixed(2)}%`);
+    }
+    
+    return {
+      ticker,
+      stockInfo: stockInfo.data,
+      prices: prices.data,
+      profile: profile.data,
+      statistics: statistics.data,
+      financials: financials.data,
+      sentiment: sentiment.data,
+      news: news.data
+    };
+    
+  } catch (error) {
+    console.error(`Error analyzing ${ticker}:`, error.message);
+    throw error;
+  }
+}
+
+// Run the analysis
+analyzeStock('AAPL').then(results => {
+  console.log('\nAnalysis complete!');
+  console.log('Results:', Object.keys(results));
+}).catch(error => {
+  console.error('Analysis failed:', error);
+});
+```
+
+## Comparative Analysis
+
+Compare multiple stocks side by side:
+
+```typescript
+async function compareStocks(tickers: string[]) {
+  console.log('Comparing stocks:', tickers.join(', '));
+  
+  const results = [];
+  
+  for (const ticker of tickers) {
+    try {
+      const [prices, statistics, sentiment] = await Promise.all([
+        client.stocks.prices(ticker, {
+          from: '2024-01-01',
+          to: '2024-01-31'
+        }),
+        client.profiles.statistics(ticker),
+        client.sentiment.all(ticker)
+      ]);
+      
+      // Calculate monthly return
+      const priceData = prices.data;
+      const monthlyReturn = priceData.length > 0
+        ? ((priceData[0].close - priceData[priceData.length - 1].close) / priceData[priceData.length - 1].close) * 100
+        : 0;
+      
+      results.push({
+        ticker,
+        monthlyReturn: monthlyReturn.toFixed(2) + '%',
+        marketCap: statistics.data.marketCap,
+        peRatio: statistics.data.trailingPE,
+        sentiment: sentiment.data.overall
+      });
+      
+    } catch (error) {
+      console.error(`Failed to analyze ${ticker}:`, error.message);
+    }
+  }
+  
+  // Display comparison table
+  console.table(results);
+  return results;
+}
+
+// Compare tech stocks
+compareStocks(['AAPL', 'MSFT', 'GOOGL', 'AMZN']);
+```
+
+## Price Pattern Detection
+
+Identify price patterns and trends:
+
+```typescript
+async function detectPricePatterns(ticker: string) {
+  const prices = await client.stocks.prices(ticker, {
+    from: '2023-01-01',
+    to: '2024-01-31',
+    frame: 'daily'
+  });
+  
+  const data = prices.data;
+  if (!data || data.length < 50) {
+    console.log('Insufficient data for pattern detection');
+    return;
+  }
+  
+  // Calculate moving averages
+  const calculateSMA = (period: number) => {
+    const closes = data.slice(0, period).map(d => d.close);
+    return closes.reduce((a, b) => a + b, 0) / period;
+  };
+  
+  const sma50 = calculateSMA(50);
+  const sma200 = calculateSMA(200);
+  const currentPrice = data[0].close;
+  
+  console.log(`${ticker} Pattern Analysis:`);
+  console.log(`Current Price: $${currentPrice}`);
+  console.log(`50-day SMA: $${sma50.toFixed(2)}`);
+  console.log(`200-day SMA: $${sma200.toFixed(2)}`);
+  
+  // Detect golden cross or death cross
+  if (sma50 > sma200) {
+    console.log('\nPattern: GOLDEN CROSS (Bullish)');
+    console.log('The 50-day SMA is above the 200-day SMA');
+  } else {
+    console.log('\nPattern: DEATH CROSS (Bearish)');
+    console.log('The 50-day SMA is below the 200-day SMA');
+  }
+  
+  // Check if price is above/below moving averages
+  if (currentPrice > sma50 && currentPrice > sma200) {
+    console.log('Price is above both moving averages (Strong uptrend)');
+  } else if (currentPrice < sma50 && currentPrice < sma200) {
+    console.log('Price is below both moving averages (Strong downtrend)');
+  } else {
+    console.log('Price is between moving averages (Consolidation)');
+  }
+  
+  // Calculate volatility
+  const returns = [];
+  for (let i = 0; i < data.length - 1; i++) {
+    const dailyReturn = (data[i].close - data[i + 1].close) / data[i + 1].close;
+    returns.push(dailyReturn);
+  }
+  
+  const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+  const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+  const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized
+  
+  console.log(`\nAnnualized Volatility: ${volatility.toFixed(2)}%`);
+}
+
+detectPricePatterns('TSLA');
+```
+
+## Earnings Analysis
+
+Analyze earnings history and trends:
+
+```typescript
+async function analyzeEarnings(ticker: string) {
+  console.log(`Earnings Analysis for ${ticker}\n`);
+  
+  try {
+    // Get earnings history
+    const history = await client.earnings.history(ticker);
+    console.log('Earnings History:');
+    history.data.slice(0, 4).forEach((earning: any) => {
+      console.log(`Q${earning.quarter} ${earning.fiscalYear}: EPS ${earning.epsActual}`);
+    });
+    
+    // Get earnings trend
+    const trend = await client.earnings.trend(ticker);
+    console.log('\nEarnings Estimates:');
+    console.log('Current Quarter:', trend.data.currentQuarter);
+    console.log('Next Quarter:', trend.data.nextQuarter);
+    
+    // Get analyst recommendations
+    const recommendations = await client.profiles.recommendation(ticker);
+    console.log('\nAnalyst Recommendations:');
+    console.log('Buy:', recommendations.data.buy);
+    console.log('Hold:', recommendations.data.hold);
+    console.log('Sell:', recommendations.data.sell);
+    
+    // Check upcoming earnings
+    const calendar = await client.profiles.calendar(ticker);
+    if (calendar.data.earnings) {
+      console.log('\nNext Earnings Date:', calendar.data.earnings.date);
+    }
+    
+  } catch (error) {
+    console.error('Earnings analysis failed:', error.message);
+  }
+}
+
+analyzeEarnings('MSFT');
+```
+
+## Error Handling Best Practices
+
+```typescript
+async function robustStockAnalysis(ticker: string) {
+  const results: any = { ticker };
+  
+  // Fetch basic info (critical)
+  try {
+    results.info = await client.stocks.ticker(ticker);
+  } catch (error) {
+    console.error(`Failed to fetch basic info for ${ticker}`);
+    throw error; // Critical error, stop execution
+  }
+  
+  // Fetch prices (important)
+  try {
+    results.prices = await client.stocks.prices(ticker, {
+      from: '2024-01-01',
+      to: '2024-01-31'
+    });
+  } catch (error) {
+    console.warn(`Price data unavailable for ${ticker}:`, error.message);
+    results.prices = null;
+  }
+  
+  // Fetch sentiment (optional)
+  try {
+    results.sentiment = await client.sentiment.all(ticker);
+  } catch (error) {
+    console.log(`Sentiment data not available for ${ticker}`);
+    results.sentiment = null;
+  }
+  
+  // Fetch ESG data (optional)
+  try {
+    results.esg = await client.esg.data(ticker);
+  } catch (error) {
+    console.log(`ESG data not available for ${ticker}`);
+    results.esg = null;
+  }
+  
+  return results;
+}
+
+robustStockAnalysis('AAPL')
+  .then(results => console.log('Analysis complete:', results))
+  .catch(error => console.error('Critical failure:', error));
+```
+
+## Next Steps
+
+- Explore [Portfolio Tracking](/examples/portfolio-tracking) for managing multiple positions
+- Learn about [Market Research](/examples/market-research) techniques
+- Review the [Stocks API](/api/stocks) documentation

@@ -1,0 +1,73 @@
+---
+title: IndicesAPI
+description: Market indices data and historical values
+---
+
+## tickers()
+
+```typescript
+tickers(params?: { exchange?: string }): Promise<ApiResponse>
+```
+
+Get list of available market indices.
+
+<ParamField path="params.exchange" type="string" optional>
+  Filter by exchange code
+</ParamField>
+
+### Example
+
+```typescript
+const tickers = await client.indices.tickers();
+```
+
+## ticker()
+
+```typescript
+ticker(ticker: string): Promise<ApiResponse>
+```
+
+Get detailed information for a specific index.
+
+<ParamField path="ticker" type="string" required>
+  Index symbol (e.g., "SPX")
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.indices.ticker('SPX');
+```
+
+## prices()
+
+```typescript
+prices(ticker: string, params?: { from?: string, to?: string, frame?: string }): Promise<ApiResponse>
+```
+
+Get historical values for a market index.
+
+<ParamField path="ticker" type="string" required>
+  Index symbol
+</ParamField>
+
+<ParamField path="params.from" type="string" optional>
+  Start date for index history
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for index history
+</ParamField>
+
+<ParamField path="params.frame" type="string" optional>
+  Time frame (e.g., "1d", "1h")
+</ParamField>
+
+### Example
+
+```typescript
+const values = await client.indices.prices('SPX', {
+  from: '2024-01-01',
+  frame: '1d'
+});
+```

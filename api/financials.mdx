@@ -1,0 +1,324 @@
+---
+title: 'Financials API'
+description: 'Access comprehensive financial statements and metrics'
+---
+
+The Financials API provides access to income statement, balance sheet, cash flow data, and calculated financial metrics for companies.
+
+## Get Revenue
+
+Retrieve revenue data over multiple periods.
+
+```typescript
+const revenue = await axion.financials.revenue('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Revenue data for the specified periods
+</ResponseField>
+
+## Get Net Income
+
+Retrieve net income data over multiple periods.
+
+```typescript
+const netIncome = await axion.financials.netIncome('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Net income data for the specified periods
+</ResponseField>
+
+## Get Total Assets
+
+Retrieve total assets data from the balance sheet.
+
+```typescript
+const assets = await axion.financials.totalAssets('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Total assets data for the specified periods
+</ResponseField>
+
+## Get Total Liabilities
+
+Retrieve total liabilities data from the balance sheet.
+
+```typescript
+const liabilities = await axion.financials.totalLiabilities('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Total liabilities data for the specified periods
+</ResponseField>
+
+## Get Stockholders Equity
+
+Retrieve stockholders equity data from the balance sheet.
+
+```typescript
+const equity = await axion.financials.stockholdersEquity('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Stockholders equity data for the specified periods
+</ResponseField>
+
+## Get Current Assets
+
+Retrieve current assets data from the balance sheet.
+
+```typescript
+const currentAssets = await axion.financials.currentAssets('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Current assets data for the specified periods
+</ResponseField>
+
+## Get Current Liabilities
+
+Retrieve current liabilities data from the balance sheet.
+
+```typescript
+const currentLiabilities = await axion.financials.currentLiabilities('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Current liabilities data for the specified periods
+</ResponseField>
+
+## Get Operating Cash Flow
+
+Retrieve operating cash flow data from the cash flow statement.
+
+```typescript
+const operatingCF = await axion.financials.operatingCashFlow('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Operating cash flow data for the specified periods
+</ResponseField>
+
+## Get Capital Expenditures
+
+Retrieve capital expenditures data from the cash flow statement.
+
+```typescript
+const capex = await axion.financials.capitalExpenditures('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Capital expenditures data for the specified periods
+</ResponseField>
+
+## Get Free Cash Flow
+
+Retrieve free cash flow data (operating cash flow minus capital expenditures).
+
+```typescript
+const fcf = await axion.financials.freeCashFlow('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Free cash flow data for the specified periods
+</ResponseField>
+
+## Get Basic Shares Outstanding
+
+Retrieve basic shares outstanding data.
+
+```typescript
+const basicShares = await axion.financials.sharesOutstandingBasic('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Basic shares outstanding data for the specified periods
+</ResponseField>
+
+## Get Diluted Shares Outstanding
+
+Retrieve diluted shares outstanding data.
+
+```typescript
+const dilutedShares = await axion.financials.sharesOutstandingDiluted('AAPL', { periods: 8 });
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="periods" type="number" default="4">
+  Number of periods to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Diluted shares outstanding data for the specified periods
+</ResponseField>
+
+## Get Financial Metrics
+
+Retrieve calculated financial metrics and ratios.
+
+```typescript
+const metrics = await axion.financials.metrics('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Calculated financial metrics including ratios, margins, and performance indicators
+</ResponseField>
+
+## Get Financial Snapshot
+
+Retrieve a snapshot of key financial data.
+
+```typescript
+const snapshot = await axion.financials.snapshot('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Financial snapshot including key metrics and current financial position
+</ResponseField>
+
+## Example Usage
+
+Here's a complete example for financial analysis:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeFinancials(ticker: string) {
+  try {
+    // Get income statement data
+    const revenue = await axion.financials.revenue(ticker, { periods: 8 });
+    const netIncome = await axion.financials.netIncome(ticker, { periods: 8 });
+    
+    console.log('Revenue Trend:', revenue.data);
+    console.log('Net Income Trend:', netIncome.data);
+    
+    // Get balance sheet data
+    const assets = await axion.financials.totalAssets(ticker, { periods: 4 });
+    const liabilities = await axion.financials.totalLiabilities(ticker, { periods: 4 });
+    const equity = await axion.financials.stockholdersEquity(ticker, { periods: 4 });
+    
+    console.log('Assets:', assets.data);
+    console.log('Liabilities:', liabilities.data);
+    console.log('Equity:', equity.data);
+    
+    // Get cash flow data
+    const operatingCF = await axion.financials.operatingCashFlow(ticker, { periods: 8 });
+    const fcf = await axion.financials.freeCashFlow(ticker, { periods: 8 });
+    
+    console.log('Operating Cash Flow:', operatingCF.data);
+    console.log('Free Cash Flow:', fcf.data);
+    
+    // Get calculated metrics
+    const metrics = await axion.financials.metrics(ticker);
+    console.log('Financial Metrics:', metrics.data);
+    
+  } catch (error) {
+    console.error('Error fetching financial data:', error);
+  }
+}
+
+analyzeFinancials('AAPL');
+```

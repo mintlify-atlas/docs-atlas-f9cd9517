@@ -1,0 +1,212 @@
+---
+title: 'Insiders API'
+description: 'Access insider trading, institutional ownership, and fund holdings data'
+---
+
+The Insiders API provides access to insider trading activity, institutional ownership, fund holdings, and major shareholder information.
+
+## Get Fund Ownership
+
+Retrieve fund ownership data for a company.
+
+```typescript
+const funds = await axion.insiders.funds('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Fund ownership data including top mutual funds and their holdings
+</ResponseField>
+
+## Get Insider Holders
+
+Retrieve insider holders (individuals) for a company.
+
+```typescript
+const individuals = await axion.insiders.individuals('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Insider holders data including executives, directors, and their shareholdings
+</ResponseField>
+
+## Get Institutional Ownership
+
+Retrieve institutional ownership data for a company.
+
+```typescript
+const institutions = await axion.insiders.institutions('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Institutional ownership data including top institutional holders and their positions
+</ResponseField>
+
+## Get Ownership Breakdown
+
+Retrieve major holders breakdown showing ownership percentages.
+
+```typescript
+const ownership = await axion.insiders.ownership('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Ownership breakdown including insider, institutional, and public ownership percentages
+</ResponseField>
+
+## Get Net Share Purchase Activity
+
+Retrieve net share purchase activity by insiders.
+
+```typescript
+const activity = await axion.insiders.activity('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Net share purchase activity showing insider buying and selling trends
+</ResponseField>
+
+## Get Insider Transactions
+
+Retrieve detailed insider transactions.
+
+```typescript
+const transactions = await axion.insiders.transactions('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed insider transactions including buys, sells, and option exercises
+</ResponseField>
+
+## Example Usage
+
+Here's a complete example showing how to analyze insider and institutional data:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeOwnership(ticker: string) {
+  try {
+    // Get ownership breakdown
+    const ownership = await axion.insiders.ownership(ticker);
+    console.log('Ownership Breakdown:', ownership.data);
+    console.log('Insider Ownership:', ownership.data.insiderOwnership);
+    console.log('Institutional Ownership:', ownership.data.institutionalOwnership);
+    
+    // Get top institutional holders
+    const institutions = await axion.insiders.institutions(ticker);
+    console.log('\nTop Institutional Holders:');
+    institutions.data.forEach((holder: any) => {
+      console.log(`${holder.organization}: ${holder.shares} shares`);
+    });
+    
+    // Get top fund holders
+    const funds = await axion.insiders.funds(ticker);
+    console.log('\nTop Fund Holders:');
+    funds.data.forEach((fund: any) => {
+      console.log(`${fund.name}: ${fund.shares} shares`);
+    });
+    
+    // Get insider holders
+    const insiders = await axion.insiders.individuals(ticker);
+    console.log('\nInsider Holders:');
+    insiders.data.forEach((insider: any) => {
+      console.log(`${insider.name} (${insider.position}): ${insider.shares} shares`);
+    });
+    
+  } catch (error) {
+    console.error('Error fetching ownership data:', error);
+  }
+}
+
+analyzeOwnership('AAPL');
+```
+
+## Monitoring Insider Trading
+
+Track recent insider trading activity:
+
+```typescript
+async function monitorInsiderTrading(ticker: string) {
+  try {
+    // Get recent transactions
+    const transactions = await axion.insiders.transactions(ticker);
+    console.log(`Recent Insider Transactions for ${ticker}:`);
+    transactions.data.forEach((tx: any) => {
+      console.log(`${tx.date}: ${tx.insider} ${tx.transactionType} ${tx.shares} shares at $${tx.price}`);
+    });
+    
+    // Get net purchase activity
+    const activity = await axion.insiders.activity(ticker);
+    console.log('\nNet Share Purchase Activity:', activity.data);
+    
+    // Analyze if insiders are buying or selling
+    if (activity.data.netShares > 0) {
+      console.log('Insiders are net buyers');
+    } else if (activity.data.netShares < 0) {
+      console.log('Insiders are net sellers');
+    } else {
+      console.log('No significant insider activity');
+    }
+    
+  } catch (error) {
+    console.error('Error monitoring insider trading:', error);
+  }
+}
+
+monitorInsiderTrading('AAPL');
+```
+
+## Institutional Ownership Analysis
+
+Analyze institutional ownership trends:
+
+```typescript
+async function analyzeInstitutionalOwnership(ticker: string) {
+  try {
+    const institutions = await axion.insiders.institutions(ticker);
+    const funds = await axion.insiders.funds(ticker);
+    const ownership = await axion.insiders.ownership(ticker);
+    
+    console.log(`Institutional Analysis for ${ticker}:`);
+    console.log('Total Institutional Ownership:', ownership.data.institutionalOwnership);
+    console.log('Number of Institutional Holders:', institutions.data.length);
+    console.log('Number of Fund Holders:', funds.data.length);
+    
+    // Calculate concentration
+    const top5Institutions = institutions.data.slice(0, 5);
+    const top5Shares = top5Institutions.reduce((sum: number, inst: any) => sum + inst.shares, 0);
+    console.log('Top 5 Institutions hold:', top5Shares, 'shares');
+    
+  } catch (error) {
+    console.error('Error analyzing institutional ownership:', error);
+  }
+}
+
+analyzeInstitutionalOwnership('AAPL');
+```

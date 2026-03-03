@@ -1,0 +1,406 @@
+---
+title: Supply Chain API
+description: Analyze supply chain relationships including customers, suppliers, and peers
+---
+
+# Supply Chain API
+
+The Supply Chain API provides insights into corporate supply chain relationships, helping you understand customer dependencies, supplier networks, and competitive peers. Use this data for supply chain risk analysis, competitive intelligence, and network effects assessment.
+
+## Methods
+
+### customers()
+
+Retrieve a company's major customers and customer relationships.
+
+```typescript
+const axion = new Axion('your-api-key');
+const customers = await axion.supplyChain.customers('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'TSLA', 'MSFT')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Major customers of the company including:
+- Customer names and tickers
+- Revenue dependency percentages
+- Relationship strength indicators
+- Geographic distribution
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "ticker": "AAPL",
+    "customers": [
+      {
+        "name": "Best Buy Co Inc",
+        "ticker": "BBY",
+        "revenuePercentage": 12.5,
+        "relationship": "Retailer"
+      },
+      {
+        "name": "AT&T Inc",
+        "ticker": "T",
+        "revenuePercentage": 8.3,
+        "relationship": "Carrier Partner"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### suppliers()
+
+Get information about a company's key suppliers.
+
+```typescript
+const suppliers = await axion.supplyChain.suppliers('TSLA');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Key suppliers and vendor relationships including:
+- Supplier names and tickers
+- Supply categories (components, materials, services)
+- Dependency levels
+- Geographic locations
+
+**Example:**
+
+```typescript
+const teslaSuppliers = await axion.supplyChain.suppliers('TSLA');
+
+console.log('Tesla Key Suppliers:');
+teslaSuppliers.data.suppliers.forEach(supplier => {
+  console.log(`${supplier.name} (${supplier.category})`);
+});
+```
+
+---
+
+### peers()
+
+Retrieve competitive peer companies.
+
+```typescript
+const peers = await axion.supplyChain.peers('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Competitive peer companies including:
+- Peer company names and tickers
+- Market overlap areas
+- Competitive positioning
+- Market share comparisons
+
+**Example:**
+
+```typescript
+const applePeers = await axion.supplyChain.peers('AAPL');
+
+console.log('Apple Competitive Peers:');
+applePeers.data.peers.forEach(peer => {
+  console.log(`${peer.name} (${peer.ticker}) - ${peer.marketOverlap}`);
+});
+```
+
+## Use Cases
+
+### Supply Chain Risk Assessment
+
+Identify supply chain concentration risks:
+
+```typescript
+const axion = new Axion('your-api-key');
+
+async function analyzeSupplyChainRisk(ticker: string) {
+  const [customers, suppliers] = await Promise.all([
+    axion.supplyChain.customers(ticker),
+    axion.supplyChain.suppliers(ticker)
+  ]);
+  
+  // Check customer concentration
+  const topCustomerConcentration = customers.data.customers
+    .slice(0, 3)
+    .reduce((sum, c) => sum + c.revenuePercentage, 0);
+  
+  const riskLevel = topCustomerConcentration > 50 ? 'High' :
+                    topCustomerConcentration > 30 ? 'Medium' : 'Low';
+  
+  return {
+    ticker,
+    customerCount: customers.data.customers.length,
+    supplierCount: suppliers.data.suppliers.length,
+    topCustomerConcentration: `${topCustomerConcentration.toFixed(1)}%`,
+    riskLevel,
+    topCustomer: customers.data.customers[0]?.name,
+    topSupplier: suppliers.data.suppliers[0]?.name
+  };
+}
+
+const risk = await analyzeSupplyChainRisk('TSLA');
+console.log('Supply Chain Risk Analysis:', risk);
+```
+
+### Supplier Diversification Analysis
+
+Analyze supplier geographic and category diversification:
+
+```typescript
+interface SupplierDiversification {
+  totalSuppliers: number;
+  categories: Record<string, number>;
+  geographies: Record<string, number>;
+  diversificationScore: number;
+}
+
+async function analyzeSupplierDiversification(
+  ticker: string
+): Promise<SupplierDiversification> {
+  const suppliers = await axion.supplyChain.suppliers(ticker);
+  
+  const categories: Record<string, number> = {};
+  const geographies: Record<string, number> = {};
+  
+  suppliers.data.suppliers.forEach(supplier => {
+    categories[supplier.category] = (categories[supplier.category] || 0) + 1;
+    geographies[supplier.geography] = (geographies[supplier.geography] || 0) + 1;
+  });
+  
+  // Simple diversification score (more categories and geographies = better)
+  const diversificationScore = 
+    (Object.keys(categories).length * 10) +
+    (Object.keys(geographies).length * 10);
+  
+  return {
+    totalSuppliers: suppliers.data.suppliers.length,
+    categories,
+    geographies,
+    diversificationScore
+  };
+}
+
+const diversification = await analyzeSupplierDiversification('AAPL');
+console.log('Supplier Diversification:', diversification);
+```
+
+### Competitive Landscape Mapping
+
+Map competitive relationships and market positioning:
+
+```typescript
+interface CompetitiveMap {
+  company: string;
+  ticker: string;
+  peers: Array<{
+    name: string;
+    ticker: string;
+    overlap: string;
+  }>;
+  competitivePosition: string;
+}
+
+async function mapCompetitiveLandscape(
+  ticker: string
+): Promise<CompetitiveMap> {
+  const peers = await axion.supplyChain.peers(ticker);
+  
+  const peerList = peers.data.peers.map(peer => ({
+    name: peer.name,
+    ticker: peer.ticker,
+    overlap: peer.marketOverlap
+  }));
+  
+  // Determine competitive position based on number of peers
+  const position = peers.data.peers.length > 10 ? 'Highly Competitive' :
+                   peers.data.peers.length > 5 ? 'Competitive' :
+                   'Niche Market';
+  
+  return {
+    company: ticker,
+    ticker,
+    peers: peerList,
+    competitivePosition: position
+  };
+}
+
+const landscape = await mapCompetitiveLandscape('AAPL');
+console.log(`${landscape.company}: ${landscape.competitivePosition}`);
+console.log(`Peer count: ${landscape.peers.length}`);
+```
+
+### Cross-Company Supply Chain Network
+
+Build a network view of supply chain relationships:
+
+```typescript
+interface NetworkNode {
+  ticker: string;
+  role: 'focal' | 'customer' | 'supplier' | 'peer';
+  connections: string[];
+}
+
+async function buildSupplyChainNetwork(
+  ticker: string
+): Promise<Map<string, NetworkNode>> {
+  const network = new Map<string, NetworkNode>();
+  
+  // Add focal company
+  network.set(ticker, {
+    ticker,
+    role: 'focal',
+    connections: []
+  });
+  
+  // Get all relationships
+  const [customers, suppliers, peers] = await Promise.all([
+    axion.supplyChain.customers(ticker),
+    axion.supplyChain.suppliers(ticker),
+    axion.supplyChain.peers(ticker)
+  ]);
+  
+  // Add customers
+  customers.data.customers.forEach(customer => {
+    if (customer.ticker) {
+      network.set(customer.ticker, {
+        ticker: customer.ticker,
+        role: 'customer',
+        connections: [ticker]
+      });
+      network.get(ticker)!.connections.push(customer.ticker);
+    }
+  });
+  
+  // Add suppliers
+  suppliers.data.suppliers.forEach(supplier => {
+    if (supplier.ticker) {
+      network.set(supplier.ticker, {
+        ticker: supplier.ticker,
+        role: 'supplier',
+        connections: [ticker]
+      });
+      network.get(ticker)!.connections.push(supplier.ticker);
+    }
+  });
+  
+  // Add peers
+  peers.data.peers.forEach(peer => {
+    if (peer.ticker) {
+      network.set(peer.ticker, {
+        ticker: peer.ticker,
+        role: 'peer',
+        connections: [ticker]
+      });
+      network.get(ticker)!.connections.push(peer.ticker);
+    }
+  });
+  
+  return network;
+}
+
+const network = await buildSupplyChainNetwork('TSLA');
+console.log(`Network size: ${network.size} companies`);
+console.log(`Connections: ${network.get('TSLA')?.connections.length}`);
+```
+
+### Investment Cascade Analysis
+
+Identify investment opportunities in supply chain:
+
+```typescript
+interface CascadeOpportunity {
+  ticker: string;
+  name: string;
+  relationship: string;
+  opportunity: string;
+}
+
+async function findCascadeOpportunities(
+  ticker: string
+): Promise<CascadeOpportunity[]> {
+  const opportunities: CascadeOpportunity[] = [];
+  
+  // If main company is doing well, suppliers may benefit
+  const suppliers = await axion.supplyChain.suppliers(ticker);
+  
+  suppliers.data.suppliers.forEach(supplier => {
+    if (supplier.ticker && supplier.dependencyLevel === 'High') {
+      opportunities.push({
+        ticker: supplier.ticker,
+        name: supplier.name,
+        relationship: 'Supplier',
+        opportunity: `High dependency on ${ticker} - may benefit from growth`
+      });
+    }
+  });
+  
+  // Check customers for distribution opportunities
+  const customers = await axion.supplyChain.customers(ticker);
+  
+  customers.data.customers.forEach(customer => {
+    if (customer.ticker && customer.revenuePercentage > 10) {
+      opportunities.push({
+        ticker: customer.ticker,
+        name: customer.name,
+        relationship: 'Customer',
+        opportunity: `Significant exposure to ${ticker} products`
+      });
+    }
+  });
+  
+  return opportunities;
+}
+
+const opportunities = await findCascadeOpportunities('AAPL');
+console.log('Supply Chain Investment Opportunities:');
+opportunities.forEach(opp => {
+  console.log(`${opp.ticker} (${opp.name}): ${opp.opportunity}`);
+});
+```
+
+### Peer Performance Comparison
+
+Compare performance metrics across peers:
+
+```typescript
+async function comparePeerPerformance(ticker: string) {
+  // Get peer companies
+  const peersData = await axion.supplyChain.peers(ticker);
+  const allCompanies = [ticker, ...peersData.data.peers.map(p => p.ticker)];
+  
+  console.log(`Analyzing ${ticker} and ${peersData.data.peers.length} peers`);
+  
+  // You could combine this with other APIs for deeper analysis
+  const peerAnalysis = peersData.data.peers.map(peer => ({
+    ticker: peer.ticker,
+    name: peer.name,
+    marketOverlap: peer.marketOverlap,
+    competitiveStrength: peer.competitiveStrength
+  }));
+  
+  return {
+    focal: ticker,
+    peers: peerAnalysis,
+    totalPeers: peerAnalysis.length
+  };
+}
+
+const comparison = await comparePeerPerformance('NVDA');
+console.log(comparison);
+```

@@ -1,0 +1,73 @@
+---
+title: FuturesAPI
+description: Futures contracts data and prices
+---
+
+## tickers()
+
+```typescript
+tickers(params?: { exchange?: string }): Promise<ApiResponse>
+```
+
+Get list of available futures contracts.
+
+<ParamField path="params.exchange" type="string" optional>
+  Filter by exchange code
+</ParamField>
+
+### Example
+
+```typescript
+const tickers = await client.futures.tickers({ exchange: 'CME' });
+```
+
+## ticker()
+
+```typescript
+ticker(ticker: string): Promise<ApiResponse>
+```
+
+Get detailed information for a specific futures contract.
+
+<ParamField path="ticker" type="string" required>
+  Futures contract symbol
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.futures.ticker('ES');
+```
+
+## prices()
+
+```typescript
+prices(ticker: string, params?: { from?: string, to?: string, frame?: string }): Promise<ApiResponse>
+```
+
+Get historical price data for a futures contract.
+
+<ParamField path="ticker" type="string" required>
+  Futures contract symbol
+</ParamField>
+
+<ParamField path="params.from" type="string" optional>
+  Start date for price history
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for price history
+</ParamField>
+
+<ParamField path="params.frame" type="string" optional>
+  Time frame (e.g., "1d", "1h")
+</ParamField>
+
+### Example
+
+```typescript
+const prices = await client.futures.prices('ES', {
+  from: '2024-01-01',
+  frame: '1d'
+});
+```

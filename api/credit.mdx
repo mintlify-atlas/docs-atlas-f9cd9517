@@ -1,0 +1,351 @@
+---
+title: Credit API
+description: Access credit ratings, scores, and entity search for credit analysis
+---
+
+# Credit API
+
+The Credit API provides access to credit ratings, scores, and creditworthiness data for companies and entities. Search for entities and retrieve detailed credit ratings from major rating agencies.
+
+## Methods
+
+### search()
+
+Search for entities in the credit database.
+
+```typescript
+const axion = new Axion('your-api-key');
+const results = await axion.credit.search('Apple Inc');
+```
+
+<ParamField path="query" type="string" required>
+  The search query (company name, ticker, or identifier)
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Search results containing matching entities with their identifiers, which can be used to retrieve detailed credit ratings.
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "entityId": "apple-inc-12345",
+      "name": "Apple Inc.",
+      "ticker": "AAPL",
+      "country": "US",
+      "sector": "Technology"
+    }
+  ]
+}
+```
+
+**Example:**
+
+```typescript
+const companies = await axion.credit.search('Tesla');
+console.log(companies.data);
+
+// Get entity ID for detailed ratings
+const entityId = companies.data[0].entityId;
+```
+
+---
+
+### ratings()
+
+Retrieve detailed credit ratings for an entity.
+
+```typescript
+const ratings = await axion.credit.ratings('apple-inc-12345');
+```
+
+<ParamField path="entityId" type="string" required>
+  The unique entity identifier obtained from the search method
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Detailed credit ratings from major rating agencies including:
+- Credit rating (e.g., AAA, AA+, BBB)
+- Rating agency (S&P, Moody's, Fitch)
+- Outlook (Positive, Stable, Negative)
+- Last update date
+- Historical rating changes
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "entityId": "apple-inc-12345",
+    "name": "Apple Inc.",
+    "ratings": [
+      {
+        "agency": "S&P",
+        "rating": "AA+",
+        "outlook": "Stable",
+        "lastUpdated": "2026-02-15"
+      },
+      {
+        "agency": "Moody's",
+        "rating": "Aa1",
+        "outlook": "Stable",
+        "lastUpdated": "2026-02-10"
+      },
+      {
+        "agency": "Fitch",
+        "rating": "AA+",
+        "outlook": "Stable",
+        "lastUpdated": "2026-01-28"
+      }
+    ],
+    "averageScore": 95,
+    "riskLevel": "Very Low"
+  }
+}
+```
+
+## Use Cases
+
+### Credit Risk Assessment
+
+Evaluate credit risk for potential investments:
+
+```typescript
+const axion = new Axion('your-api-key');
+
+async function assessCreditRisk(companyName: string) {
+  // First, search for the company
+  const searchResults = await axion.credit.search(companyName);
+  
+  if (searchResults.data.length === 0) {
+    console.log(`No results found for ${companyName}`);
+    return null;
+  }
+  
+  // Get the first match
+  const entity = searchResults.data[0];
+  
+  // Retrieve detailed ratings
+  const ratings = await axion.credit.ratings(entity.entityId);
+  
+  return {
+    company: entity.name,
+    ticker: entity.ticker,
+    ratings: ratings.data.ratings,
+    riskLevel: ratings.data.riskLevel,
+    score: ratings.data.averageScore
+  };
+}
+
+const analysis = await assessCreditRisk('Apple Inc');
+console.log(analysis);
+```
+
+### Portfolio Credit Quality Check
+
+Analyze credit quality across your portfolio:
+
+```typescript
+const portfolio = [
+  'Apple Inc',
+  'Microsoft Corporation',
+  'Tesla Inc',
+  'Amazon.com Inc'
+];
+
+interface CreditSummary {
+  company: string;
+  avgRating: string;
+  riskLevel: string;
+  outlook: string;
+}
+
+const creditSummaries: CreditSummary[] = [];
+
+for (const company of portfolio) {
+  const search = await axion.credit.search(company);
+  
+  if (search.data.length > 0) {
+    const entity = search.data[0];
+    const ratings = await axion.credit.ratings(entity.entityId);
+    
+    // Get most common outlook
+    const outlooks = ratings.data.ratings.map(r => r.outlook);
+    const mostCommonOutlook = outlooks.sort((a, b) =>
+      outlooks.filter(v => v === b).length -
+      outlooks.filter(v => v === a).length
+    )[0];
+    
+    creditSummaries.push({
+      company: entity.name,
+      avgRating: ratings.data.ratings[0]?.rating || 'N/A',
+      riskLevel: ratings.data.riskLevel,
+      outlook: mostCommonOutlook
+    });
+  }
+}
+
+console.log('Portfolio Credit Quality:');
+creditSummaries.forEach(summary => {
+  console.log(`${summary.company}: ${summary.avgRating} (${summary.riskLevel}, ${summary.outlook})`);
+});
+```
+
+### Rating Agency Comparison
+
+Compare ratings across different agencies:
+
+```typescript
+async function compareRatingAgencies(companyName: string) {
+  const search = await axion.credit.search(companyName);
+  const entity = search.data[0];
+  const ratings = await axion.credit.ratings(entity.entityId);
+  
+  console.log(`Credit Ratings for ${entity.name}:`);
+  console.log('─'.repeat(50));
+  
+  ratings.data.ratings.forEach(rating => {
+    console.log(`${rating.agency.padEnd(10)} ${rating.rating.padEnd(6)} ${rating.outlook.padEnd(10)} (${rating.lastUpdated})`);
+  });
+  
+  console.log('─'.repeat(50));
+  console.log(`Average Score: ${ratings.data.averageScore}`);
+  console.log(`Risk Level: ${ratings.data.riskLevel}`);
+}
+
+await compareRatingAgencies('Microsoft Corporation');
+```
+
+### Investment Grade Filter
+
+Filter investments by credit rating:
+
+```typescript
+// Investment grade ratings: BBB-/Baa3 or higher
+const INVESTMENT_GRADE_THRESHOLD = 70;
+
+async function isInvestmentGrade(companyName: string): Promise<boolean> {
+  const search = await axion.credit.search(companyName);
+  
+  if (search.data.length === 0) return false;
+  
+  const entity = search.data[0];
+  const ratings = await axion.credit.ratings(entity.entityId);
+  
+  return ratings.data.averageScore >= INVESTMENT_GRADE_THRESHOLD;
+}
+
+const candidates = [
+  'Apple Inc',
+  'Tesla Inc',
+  'JPMorgan Chase',
+  'General Electric'
+];
+
+for (const company of candidates) {
+  const investmentGrade = await isInvestmentGrade(company);
+  console.log(`${company}: ${investmentGrade ? '✓' : '✗'} Investment Grade`);
+}
+```
+
+### Credit Rating Change Monitor
+
+Monitor for rating changes and outlook shifts:
+
+```typescript
+interface RatingAlert {
+  company: string;
+  ticker: string;
+  agency: string;
+  rating: string;
+  outlook: string;
+  lastUpdated: string;
+}
+
+async function monitorCreditChanges(
+  companies: string[],
+  daysThreshold: number = 30
+): Promise<RatingAlert[]> {
+  const alerts: RatingAlert[] = [];
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysThreshold);
+  
+  for (const company of companies) {
+    const search = await axion.credit.search(company);
+    
+    if (search.data.length === 0) continue;
+    
+    const entity = search.data[0];
+    const ratings = await axion.credit.ratings(entity.entityId);
+    
+    // Check for recent updates or negative outlooks
+    ratings.data.ratings.forEach(rating => {
+      const updateDate = new Date(rating.lastUpdated);
+      
+      if (updateDate > cutoffDate || rating.outlook === 'Negative') {
+        alerts.push({
+          company: entity.name,
+          ticker: entity.ticker,
+          agency: rating.agency,
+          rating: rating.rating,
+          outlook: rating.outlook,
+          lastUpdated: rating.lastUpdated
+        });
+      }
+    });
+  }
+  
+  return alerts;
+}
+
+const watchlist = ['Tesla Inc', 'Ford Motor', 'General Motors'];
+const alerts = await monitorCreditChanges(watchlist, 30);
+
+if (alerts.length > 0) {
+  console.log('Credit Rating Alerts:');
+  alerts.forEach(alert => {
+    console.log(`${alert.company} (${alert.ticker}): ${alert.agency} ${alert.rating} - ${alert.outlook}`);
+  });
+}
+```
+
+### Sector Credit Analysis
+
+Analyze credit quality by sector:
+
+```typescript
+const sectors = {
+  technology: ['Apple Inc', 'Microsoft Corporation', 'Alphabet Inc'],
+  automotive: ['Tesla Inc', 'Ford Motor', 'General Motors'],
+  finance: ['JPMorgan Chase', 'Bank of America', 'Goldman Sachs']
+};
+
+const sectorAnalysis = {};
+
+for (const [sector, companies] of Object.entries(sectors)) {
+  const scores = [];
+  
+  for (const company of companies) {
+    const search = await axion.credit.search(company);
+    if (search.data.length > 0) {
+      const ratings = await axion.credit.ratings(search.data[0].entityId);
+      scores.push(ratings.data.averageScore);
+    }
+  }
+  
+  const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+  sectorAnalysis[sector] = {
+    averageScore: Math.round(avgScore),
+    companies: companies.length
+  };
+}
+
+console.log('Credit Quality by Sector:');
+Object.entries(sectorAnalysis).forEach(([sector, data]) => {
+  console.log(`${sector}: ${data.averageScore} (${data.companies} companies)`);
+});
+```

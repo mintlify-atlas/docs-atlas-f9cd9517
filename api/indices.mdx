@@ -1,0 +1,386 @@
+---
+title: 'Indices API'
+description: 'Access market indices data including major global indices and historical performance'
+---
+
+## Overview
+
+The Indices API provides real-time and historical data for major market indices worldwide, including the S&P 500, NASDAQ, Dow Jones, and international indices.
+
+## Methods
+
+### tickers()
+
+Retrieve a list of available market indices with optional filtering by exchange.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all market indices
+const allIndices = await axion.indices.tickers();
+
+// Filter by exchange
+const usIndices = await axion.indices.tickers({ exchange: 'US' });
+
+// Get European indices
+const euIndices = await axion.indices.tickers({ exchange: 'EU' });
+```
+
+<ParamField path="exchange" type="string" optional>
+  Filter indices by exchange or region (e.g., 'US', 'EU', 'ASIA')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of index objects
+  <ResponseField name="ticker" type="string">
+    Index ticker symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the index
+  </ResponseField>
+  <ResponseField name="exchange" type="string">
+    Exchange or region
+  </ResponseField>
+  <ResponseField name="currency" type="string">
+    Currency in which the index is quoted
+  </ResponseField>
+</ResponseField>
+
+### ticker()
+
+Get detailed information about a specific market index.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get S&P 500 data
+const sp500 = await axion.indices.ticker('SPX');
+
+// Get NASDAQ data
+const nasdaq = await axion.indices.ticker('IXIC');
+
+// Get Dow Jones data
+const dow = await axion.indices.ticker('DJI');
+
+// Get FTSE 100 data
+const ftse = await axion.indices.ticker('FTSE');
+```
+
+<ParamField path="ticker" type="string" required>
+  The index ticker symbol (e.g., 'SPX', 'IXIC', 'DJI')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed index information
+  <ResponseField name="ticker" type="string">
+    Index ticker symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the index
+  </ResponseField>
+  <ResponseField name="value" type="number">
+    Current index value
+  </ResponseField>
+  <ResponseField name="change" type="number">
+    Point change
+  </ResponseField>
+  <ResponseField name="changePercent" type="number">
+    Percentage change
+  </ResponseField>
+  <ResponseField name="high" type="number">
+    Day's high value
+  </ResponseField>
+  <ResponseField name="low" type="number">
+    Day's low value
+  </ResponseField>
+  <ResponseField name="open" type="number">
+    Opening value
+  </ResponseField>
+  <ResponseField name="previousClose" type="number">
+    Previous closing value
+  </ResponseField>
+</ResponseField>
+
+### prices()
+
+Retrieve historical performance data for a market index with optional date range and time frame.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all available historical data
+const allData = await axion.indices.prices('SPX');
+
+// Get data for a specific date range
+const rangedData = await axion.indices.prices('SPX', {
+  from: '2024-01-01',
+  to: '2024-12-31'
+});
+
+// Get daily values
+const dailyData = await axion.indices.prices('IXIC', {
+  from: '2024-01-01',
+  to: '2024-12-31',
+  frame: 'daily'
+});
+
+// Get weekly values for trend analysis
+const weeklyData = await axion.indices.prices('DJI', {
+  from: '2023-01-01',
+  to: '2024-01-01',
+  frame: 'weekly'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The index ticker symbol (e.g., 'SPX', 'IXIC', 'DJI')
+</ParamField>
+
+<ParamField path="from" type="string" optional>
+  Start date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="to" type="string" optional>
+  End date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="frame" type="string" optional>
+  Time frame for index data ('daily', 'weekly', 'monthly')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of historical index values
+  <ResponseField name="date" type="string">
+    Date of the data point
+  </ResponseField>
+  <ResponseField name="open" type="number">
+    Opening value
+  </ResponseField>
+  <ResponseField name="high" type="number">
+    Highest value
+  </ResponseField>
+  <ResponseField name="low" type="number">
+    Lowest value
+  </ResponseField>
+  <ResponseField name="close" type="number">
+    Closing value
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Trading volume (if applicable)
+  </ResponseField>
+</ResponseField>
+
+## Example: Market Overview Dashboard
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function createMarketOverview(indices: string[]) {
+  const overview = [];
+
+  for (const index of indices) {
+    const data = await axion.indices.ticker(index);
+    
+    overview.push({
+      index: index,
+      name: data.data.name,
+      value: data.data.value,
+      change: data.data.change,
+      changePercent: data.data.changePercent,
+      high: data.data.high,
+      low: data.data.low
+    });
+  }
+
+  return overview;
+}
+
+// Create overview of major US indices
+const marketOverview = await createMarketOverview(['SPX', 'IXIC', 'DJI']);
+
+console.log('Market Overview:');
+marketOverview.forEach(i => {
+  const direction = i.changePercent >= 0 ? '▲' : '▼';
+  console.log(`${i.name}:`);
+  console.log(`  ${i.value.toFixed(2)} ${direction} ${i.changePercent.toFixed(2)}%`);
+  console.log(`  Range: ${i.low.toFixed(2)} - ${i.high.toFixed(2)}`);
+});
+```
+
+## Example: Index Performance Comparison
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function compareIndexPerformance(
+  indices: string[],
+  startDate: string,
+  endDate: string
+) {
+  const performance = [];
+
+  for (const index of indices) {
+    const prices = await axion.indices.prices(index, {
+      from: startDate,
+      to: endDate,
+      frame: 'daily'
+    });
+    
+    const firstValue = prices.data[0].close;
+    const lastValue = prices.data[prices.data.length - 1].close;
+    const returnPercent = ((lastValue - firstValue) / firstValue) * 100;
+    
+    performance.push({
+      index,
+      startValue: firstValue,
+      endValue: lastValue,
+      return: returnPercent
+    });
+  }
+
+  return performance.sort((a, b) => b.return - a.return);
+}
+
+// Compare YTD performance
+const comparison = await compareIndexPerformance(
+  ['SPX', 'IXIC', 'DJI', 'FTSE'],
+  '2024-01-01',
+  '2024-12-31'
+);
+
+console.log('Year-to-Date Performance:');
+comparison.forEach((perf, i) => {
+  console.log(`${i + 1}. ${perf.index}: ${perf.return > 0 ? '+' : ''}${perf.return.toFixed(2)}%`);
+  console.log(`   ${perf.startValue.toFixed(2)} → ${perf.endValue.toFixed(2)}`);
+});
+```
+
+## Example: Index Volatility Analysis
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+function calculateVolatility(prices: number[]): number {
+  const returns = [];
+  for (let i = 1; i < prices.length; i++) {
+    returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+  }
+  
+  const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+  const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+  
+  return Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized volatility
+}
+
+async function analyzeIndexVolatility(index: string, days: number) {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const prices = await axion.indices.prices(index, {
+    from: startDate.toISOString().split('T')[0],
+    to: endDate.toISOString().split('T')[0],
+    frame: 'daily'
+  });
+  
+  const closePrices = prices.data.map(p => p.close);
+  const volatility = calculateVolatility(closePrices);
+  
+  const currentValue = closePrices[closePrices.length - 1];
+  const maxValue = Math.max(...closePrices);
+  const minValue = Math.min(...closePrices);
+  const avgValue = closePrices.reduce((sum, p) => sum + p, 0) / closePrices.length;
+  
+  return {
+    index,
+    period: `${days} days`,
+    volatility: volatility.toFixed(2) + '%',
+    currentValue,
+    avgValue,
+    maxValue,
+    minValue,
+    range: maxValue - minValue
+  };
+}
+
+// Analyze S&P 500 volatility over 90 days
+const volatilityAnalysis = await analyzeIndexVolatility('SPX', 90);
+console.log(`${volatilityAnalysis.index} Volatility Analysis (${volatilityAnalysis.period}):`);
+console.log(`Annualized Volatility: ${volatilityAnalysis.volatility}`);
+console.log(`Current: ${volatilityAnalysis.currentValue.toFixed(2)}`);
+console.log(`Average: ${volatilityAnalysis.avgValue.toFixed(2)}`);
+console.log(`Range: ${volatilityAnalysis.minValue.toFixed(2)} - ${volatilityAnalysis.maxValue.toFixed(2)}`);
+```
+
+## Example: Global Market Monitor
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function monitorGlobalMarkets() {
+  const regions = {
+    'Americas': ['SPX', 'IXIC', 'DJI'],
+    'Europe': ['FTSE', 'DAX', 'CAC'],
+    'Asia': ['N225', 'HSI', 'SSEC']
+  };
+  
+  const globalOverview = {};
+  
+  for (const [region, indices] of Object.entries(regions)) {
+    const regionData = [];
+    
+    for (const index of indices) {
+      try {
+        const data = await axion.indices.ticker(index);
+        regionData.push({
+          index,
+          name: data.data.name,
+          value: data.data.value,
+          changePercent: data.data.changePercent
+        });
+      } catch (error) {
+        console.error(`Error fetching ${index}:`, error.message);
+      }
+    }
+    
+    globalOverview[region] = regionData;
+  }
+  
+  return globalOverview;
+}
+
+// Monitor global markets
+const global = await monitorGlobalMarkets();
+
+for (const [region, indices] of Object.entries(global)) {
+  console.log(`\n${region}:`);
+  indices.forEach(i => {
+    const arrow = i.changePercent >= 0 ? '▲' : '▼';
+    console.log(`  ${i.name}: ${i.value.toFixed(2)} ${arrow} ${Math.abs(i.changePercent).toFixed(2)}%`);
+  });
+}
+```
+
+## Error Handling
+
+```typescript
+try {
+  const data = await axion.indices.ticker('INVALID');
+} catch (error) {
+  if (error.message.includes('HTTP Error 404')) {
+    console.error('Index not found');
+  } else if (error.message.includes('Authentication required')) {
+    console.error('API key is required');
+  } else {
+    console.error('An error occurred:', error.message);
+  }
+}
+```

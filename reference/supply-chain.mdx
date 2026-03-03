@@ -1,0 +1,58 @@
+---
+title: SupplyChainAPI
+description: Supply chain relationships and networks
+---
+
+## customers()
+
+```typescript
+customers(ticker: string): Promise<ApiResponse>
+```
+
+Get customer relationships for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const customers = await client.supplyChain.customers('AAPL');
+```
+
+## peers()
+
+```typescript
+peers(ticker: string): Promise<ApiResponse>
+```
+
+Get peer companies.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const peers = await client.supplyChain.peers('AAPL');
+```
+
+## suppliers()
+
+```typescript
+suppliers(ticker: string): Promise<ApiResponse>
+```
+
+Get supplier relationships for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const suppliers = await client.supplyChain.suppliers('AAPL');
+```

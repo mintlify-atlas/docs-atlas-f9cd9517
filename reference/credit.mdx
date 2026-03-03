@@ -1,0 +1,40 @@
+---
+title: CreditAPI
+description: Credit ratings and analysis
+---
+
+## search()
+
+```typescript
+search(query: string): Promise<ApiResponse>
+```
+
+Search for credit entities.
+
+<ParamField path="query" type="string" required>
+  Search query string
+</ParamField>
+
+### Example
+
+```typescript
+const results = await client.credit.search('Apple Inc');
+```
+
+## ratings()
+
+```typescript
+ratings(entityId: string): Promise<ApiResponse>
+```
+
+Get credit ratings for an entity.
+
+<ParamField path="entityId" type="string" required>
+  Entity ID from search results
+</ParamField>
+
+### Example
+
+```typescript
+const ratings = await client.credit.ratings('entity-123');
+```

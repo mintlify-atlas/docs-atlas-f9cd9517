@@ -1,0 +1,139 @@
+---
+title: 'Profiles API'
+description: 'Access company profiles, statistics, and calendar events'
+---
+
+The Profiles API provides comprehensive company information including profiles, recommendations, statistics, summaries, and calendar events.
+
+## Get Company Profile
+
+Retrieve detailed profile information for a company.
+
+```typescript
+const profile = await axion.profiles.profile('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'TSLA')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Company profile data including business description, sector, industry, and key details
+</ResponseField>
+
+## Get Recommendation Trend
+
+Retrieve analyst recommendation trends for a company.
+
+```typescript
+const recommendations = await axion.profiles.recommendation('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Recommendation trend data showing buy, hold, and sell ratings over time
+</ResponseField>
+
+## Get Key Statistics
+
+Retrieve key financial statistics for a company.
+
+```typescript
+const stats = await axion.profiles.statistics('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Key statistics including market cap, P/E ratio, dividend yield, and more
+</ResponseField>
+
+## Get Summary Detail
+
+Retrieve summary details for a company.
+
+```typescript
+const summary = await axion.profiles.summary('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Summary detail data including price information and market metrics
+</ResponseField>
+
+## Get Calendar Events
+
+Retrieve upcoming calendar events including earnings and dividend dates.
+
+```typescript
+const calendar = await axion.profiles.calendar('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Calendar events including earnings dates, ex-dividend dates, and dividend payment dates
+</ResponseField>
+
+## Get Company Info
+
+Retrieve summary company information and profile.
+
+```typescript
+const info = await axion.profiles.info('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Company information including business summary, sector, industry, employees, and contact details
+</ResponseField>
+
+## Example Usage
+
+Here's a complete example showing how to fetch various profile data:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function getCompanyOverview(ticker: string) {
+  try {
+    // Get basic company info
+    const info = await axion.profiles.info(ticker);
+    console.log('Company:', info.data.longName);
+    console.log('Sector:', info.data.sector);
+    
+    // Get key statistics
+    const stats = await axion.profiles.statistics(ticker);
+    console.log('Market Cap:', stats.data.marketCap);
+    console.log('P/E Ratio:', stats.data.trailingPE);
+    
+    // Get upcoming events
+    const calendar = await axion.profiles.calendar(ticker);
+    console.log('Next Earnings:', calendar.data.earningsDate);
+    
+    // Get analyst recommendations
+    const recommendations = await axion.profiles.recommendation(ticker);
+    console.log('Recommendations:', recommendations.data);
+    
+  } catch (error) {
+    console.error('Error fetching profile data:', error);
+  }
+}
+
+getCompanyOverview('AAPL');
+```

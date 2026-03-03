@@ -1,0 +1,77 @@
+---
+title: ForexAPI
+description: Foreign exchange data and rates
+---
+
+## tickers()
+
+```typescript
+tickers(params?: { country?: string, exchange?: string }): Promise<ApiResponse>
+```
+
+Get list of available forex pairs.
+
+<ParamField path="params.country" type="string" optional>
+  Filter by country code
+</ParamField>
+
+<ParamField path="params.exchange" type="string" optional>
+  Filter by exchange code
+</ParamField>
+
+### Example
+
+```typescript
+const tickers = await client.forex.tickers();
+```
+
+## ticker()
+
+```typescript
+ticker(ticker: string): Promise<ApiResponse>
+```
+
+Get detailed information for a specific forex pair.
+
+<ParamField path="ticker" type="string" required>
+  Forex pair symbol (e.g., "EUR/USD")
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.forex.ticker('EUR/USD');
+```
+
+## prices()
+
+```typescript
+prices(ticker: string, params?: { from?: string, to?: string, frame?: string }): Promise<ApiResponse>
+```
+
+Get historical exchange rate data for a forex pair.
+
+<ParamField path="ticker" type="string" required>
+  Forex pair symbol
+</ParamField>
+
+<ParamField path="params.from" type="string" optional>
+  Start date for rate history
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for rate history
+</ParamField>
+
+<ParamField path="params.frame" type="string" optional>
+  Time frame (e.g., "1d", "1h")
+</ParamField>
+
+### Example
+
+```typescript
+const rates = await client.forex.prices('EUR/USD', {
+  from: '2024-01-01',
+  frame: '1d'
+});
+```

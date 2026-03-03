@@ -1,0 +1,469 @@
+---
+title: 'Market Research'
+description: 'Comprehensive market research using economic data, sector analysis, and trends'
+icon: 'magnifying-glass-chart'
+---
+
+This example demonstrates how to conduct comprehensive market research using the Axion SDK. Analyze sectors, track economic indicators, monitor market trends, and identify investment opportunities.
+
+## Sector Analysis
+
+Analyze an entire sector by examining multiple companies:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const client = new Axion('your-api-key');
+
+async function analyzeSector(tickers: string[], sectorName: string) {
+  console.log(`=== ${sectorName} Sector Analysis ===\n`);
+  
+  const sectorData = [];
+  
+  for (const ticker of tickers) {
+    try {
+      const [stock, statistics, financials, sentiment] = await Promise.all([
+        client.stocks.ticker(ticker),
+        client.profiles.statistics(ticker),
+        client.financials.snapshot(ticker),
+        client.sentiment.all(ticker)
+      ]);
+      
+      sectorData.push({
+        ticker,
+        name: stock.data.name,
+        marketCap: statistics.data.marketCap,
+        peRatio: statistics.data.trailingPE || 'N/A',
+        revenueGrowth: financials.data.revenueGrowth || 'N/A',
+        operatingMargin: financials.data.operatingMargin || 'N/A',
+        sentiment: sentiment.data.overall || 'N/A'
+      });
+      
+    } catch (error) {
+      console.error(`Failed to analyze ${ticker}:`, error.message);
+    }
+  }
+  
+  console.table(sectorData);
+  
+  // Calculate sector averages
+  const avgPE = sectorData
+    .filter(d => typeof d.peRatio === 'number')
+    .reduce((sum, d) => sum + Number(d.peRatio), 0) / sectorData.length;
+  
+  console.log(`\nSector Average P/E Ratio: ${avgPE.toFixed(2)}`);
+  
+  return sectorData;
+}
+
+// Analyze technology sector
+const techStocks = ['AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TSLA', 'AMZN'];
+analyzeSector(techStocks, 'Technology');
+```
+
+## Economic Indicators Dashboard
+
+Track key economic indicators that affect the market:
+
+```typescript
+async function createEconomicDashboard() {
+  console.log('=== Economic Indicators Dashboard ===\n');
+  
+  try {
+    // Search for key economic indicators
+    const indicators = [
+      'GDP',
+      'unemployment rate',
+      'inflation',
+      'consumer price index',
+      'interest rate'
+    ];
+    
+    for (const indicator of indicators) {
+      const searchResults = await client.econ.search(indicator);
+      
+      if (searchResults.data && searchResults.data.length > 0) {
+        const seriesId = searchResults.data[0].id;
+        const data = await client.econ.dataset(seriesId);
+        
+        console.log(`${indicator.toUpperCase()}:`);
+        console.log(`  Series: ${searchResults.data[0].title}`);
+        
+        if (data.data && data.data.length > 0) {
+          console.log(`  Latest Value: ${data.data[0].value}`);
+          console.log(`  Date: ${data.data[0].date}`);
+          
+          // Calculate trend (comparing last 2 data points)
+          if (data.data.length > 1) {
+            const trend = data.data[0].value - data.data[1].value;
+            console.log(`  Trend: ${trend > 0 ? '↑' : '↓'} ${Math.abs(trend).toFixed(2)}`);
+          }
+        }
+        console.log();
+      }
+    }
+    
+    // Get economic calendar for upcoming events
+    console.log('\n=== Upcoming Economic Events ===\n');
+    const today = new Date();
+    const nextMonth = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    const calendar = await client.econ.calendar({
+      from: today.toISOString().split('T')[0],
+      to: nextMonth.toISOString().split('T')[0],
+      country: 'US',
+      minImportance: 2
+    });
+    
+    if (calendar.data && calendar.data.length > 0) {
+      calendar.data.slice(0, 10).forEach((event: any) => {
+        console.log(`${event.date}: ${event.event}`);
+        console.log(`  Importance: ${'★'.repeat(event.importance)}`);
+        console.log(`  Previous: ${event.previous || 'N/A'}`);
+        console.log(`  Forecast: ${event.forecast || 'N/A'}`);
+        console.log();
+      });
+    }
+    
+  } catch (error) {
+    console.error('Failed to create economic dashboard:', error.message);
+  }
+}
+
+createEconomicDashboard();
+```
+
+## Market Sentiment Analysis
+
+Analyze overall market sentiment across multiple dimensions:
+
+```typescript
+async function analyzeMarketSentiment(tickers: string[]) {
+  console.log('=== Market Sentiment Analysis ===\n');
+  
+  const sentimentData = {
+    overall: [],
+    social: [],
+    news: [],
+    analyst: []
+  };
+  
+  for (const ticker of tickers) {
+    try {
+      const sentiment = await client.sentiment.all(ticker);
+      
+      sentimentData.overall.push(sentiment.data.overall || 0);
+      sentimentData.social.push(sentiment.data.social || 0);
+      sentimentData.news.push(sentiment.data.news || 0);
+      sentimentData.analyst.push(sentiment.data.analyst || 0);
+      
+      console.log(`${ticker}:`);
+      console.log(`  Overall: ${sentiment.data.overall}`);
+      console.log(`  Social: ${sentiment.data.social}`);
+      console.log(`  News: ${sentiment.data.news}`);
+      console.log(`  Analyst: ${sentiment.data.analyst}`);
+      console.log();
+      
+    } catch (error) {
+      console.error(`Failed to get sentiment for ${ticker}`);
+    }
+  }
+  
+  // Calculate market averages
+  const avgOverall = sentimentData.overall.reduce((a, b) => a + b, 0) / sentimentData.overall.length;
+  const avgSocial = sentimentData.social.reduce((a, b) => a + b, 0) / sentimentData.social.length;
+  const avgNews = sentimentData.news.reduce((a, b) => a + b, 0) / sentimentData.news.length;
+  const avgAnalyst = sentimentData.analyst.reduce((a, b) => a + b, 0) / sentimentData.analyst.length;
+  
+  console.log('Market Averages:');
+  console.log(`  Overall Sentiment: ${avgOverall.toFixed(2)}`);
+  console.log(`  Social Media: ${avgSocial.toFixed(2)}`);
+  console.log(`  News: ${avgNews.toFixed(2)}`);
+  console.log(`  Analyst: ${avgAnalyst.toFixed(2)}`);
+  
+  // Determine market mood
+  const marketMood = avgOverall > 0.5 ? 'Bullish' : avgOverall < -0.5 ? 'Bearish' : 'Neutral';
+  console.log(`\nMarket Mood: ${marketMood}`);
+  
+  return { sentimentData, marketMood };
+}
+
+const marketStocks = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'JPM', 'BAC', 'XOM'];
+analyzeMarketSentiment(marketStocks);
+```
+
+## ETF Analysis and Comparison
+
+Compare ETFs to find the best investment vehicles:
+
+```typescript
+async function compareETFs(etfTickers: string[]) {
+  console.log('=== ETF Comparison ===\n');
+  
+  const etfData = [];
+  
+  for (const ticker of etfTickers) {
+    try {
+      const [fund, holdings, prices] = await Promise.all([
+        client.etfs.fund(ticker),
+        client.etfs.holdings(ticker),
+        client.stocks.prices(ticker, {
+          from: '2023-01-01',
+          to: '2024-01-31'
+        })
+      ]);
+      
+      // Calculate YTD return
+      let ytdReturn = 0;
+      if (prices.data && prices.data.length > 1) {
+        ytdReturn = ((prices.data[0].close - prices.data[prices.data.length - 1].close) / prices.data[prices.data.length - 1].close) * 100;
+      }
+      
+      etfData.push({
+        ticker,
+        name: fund.data.name,
+        expenseRatio: fund.data.expenseRatio || 'N/A',
+        aum: fund.data.totalAssets || 'N/A',
+        holdings: holdings.data?.length || 0,
+        ytdReturn: `${ytdReturn.toFixed(2)}%`
+      });
+      
+      // Show top holdings
+      console.log(`${ticker} - ${fund.data.name}`);
+      console.log('Top Holdings:');
+      if (holdings.data && holdings.data.length > 0) {
+        holdings.data.slice(0, 5).forEach((holding: any, index: number) => {
+          console.log(`  ${index + 1}. ${holding.symbol}: ${holding.weight}%`);
+        });
+      }
+      console.log();
+      
+    } catch (error) {
+      console.error(`Failed to analyze ${ticker}:`, error.message);
+    }
+  }
+  
+  console.log('\nETF Summary:');
+  console.table(etfData);
+  
+  return etfData;
+}
+
+const etfs = ['SPY', 'QQQ', 'IWM', 'VTI', 'VOO'];
+compareETFs(etfs);
+```
+
+## Supply Chain Analysis
+
+Analyze company relationships and supply chain networks:
+
+```typescript
+async function analyzeSupplyChain(ticker: string) {
+  console.log(`=== Supply Chain Analysis: ${ticker} ===\n`);
+  
+  try {
+    const [suppliers, customers, peers] = await Promise.all([
+      client.supplyChain.suppliers(ticker),
+      client.supplyChain.customers(ticker),
+      client.supplyChain.peers(ticker)
+    ]);
+    
+    console.log('Key Suppliers:');
+    if (suppliers.data && suppliers.data.length > 0) {
+      suppliers.data.slice(0, 5).forEach((supplier: any) => {
+        console.log(`  - ${supplier.name} (${supplier.ticker})`);
+      });
+    } else {
+      console.log('  No supplier data available');
+    }
+    
+    console.log('\nKey Customers:');
+    if (customers.data && customers.data.length > 0) {
+      customers.data.slice(0, 5).forEach((customer: any) => {
+        console.log(`  - ${customer.name} (${customer.ticker})`);
+      });
+    } else {
+      console.log('  No customer data available');
+    }
+    
+    console.log('\nCompetitor Peers:');
+    if (peers.data && peers.data.length > 0) {
+      peers.data.slice(0, 5).forEach((peer: any) => {
+        console.log(`  - ${peer.name} (${peer.ticker})`);
+      });
+    } else {
+      console.log('  No peer data available');
+    }
+    
+    // Analyze suppliers' performance
+    if (suppliers.data && suppliers.data.length > 0) {
+      console.log('\nSupplier Performance:');
+      for (const supplier of suppliers.data.slice(0, 3)) {
+        if (supplier.ticker) {
+          const prices = await client.stocks.prices(supplier.ticker, {
+            from: '2023-01-01',
+            to: '2024-01-31'
+          });
+          
+          if (prices.data && prices.data.length > 1) {
+            const return_ = ((prices.data[0].close - prices.data[prices.data.length - 1].close) / prices.data[prices.data.length - 1].close) * 100;
+            console.log(`  ${supplier.ticker}: ${return_.toFixed(2)}% YTD`);
+          }
+        }
+      }
+    }
+    
+  } catch (error) {
+    console.error('Supply chain analysis failed:', error.message);
+  }
+}
+
+analyzeSupplyChain('AAPL');
+```
+
+## Market Screening
+
+Screen for stocks based on specific criteria:
+
+```typescript
+interface ScreenCriteria {
+  minMarketCap?: number;
+  maxPE?: number;
+  minRevenueGrowth?: number;
+  minSentiment?: number;
+}
+
+async function screenStocks(tickers: string[], criteria: ScreenCriteria) {
+  console.log('=== Stock Screening ===');
+  console.log('Criteria:', criteria);
+  console.log();
+  
+  const matches = [];
+  
+  for (const ticker of tickers) {
+    try {
+      const [statistics, financials, sentiment] = await Promise.all([
+        client.profiles.statistics(ticker),
+        client.financials.snapshot(ticker),
+        client.sentiment.all(ticker)
+      ]);
+      
+      const stock = {
+        ticker,
+        marketCap: statistics.data.marketCap,
+        peRatio: statistics.data.trailingPE,
+        revenueGrowth: financials.data.revenueGrowth,
+        sentiment: sentiment.data.overall
+      };
+      
+      // Apply screening criteria
+      let passesScreen = true;
+      
+      if (criteria.minMarketCap && stock.marketCap < criteria.minMarketCap) {
+        passesScreen = false;
+      }
+      
+      if (criteria.maxPE && stock.peRatio > criteria.maxPE) {
+        passesScreen = false;
+      }
+      
+      if (criteria.minRevenueGrowth && stock.revenueGrowth < criteria.minRevenueGrowth) {
+        passesScreen = false;
+      }
+      
+      if (criteria.minSentiment && stock.sentiment < criteria.minSentiment) {
+        passesScreen = false;
+      }
+      
+      if (passesScreen) {
+        matches.push(stock);
+      }
+      
+    } catch (error) {
+      console.error(`Failed to screen ${ticker}`);
+    }
+  }
+  
+  console.log(`Found ${matches.length} stocks matching criteria:\n`);
+  console.table(matches);
+  
+  return matches;
+}
+
+// Screen for growth stocks
+const candidates = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX'];
+screenStocks(candidates, {
+  minMarketCap: 100000000000,  // $100B
+  maxPE: 50,
+  minRevenueGrowth: 10,
+  minSentiment: 0
+});
+```
+
+## Correlation Analysis
+
+Analyze price correlations between stocks:
+
+```typescript
+async function analyzeCorrelations(tickers: string[]) {
+  console.log('=== Correlation Analysis ===\n');
+  
+  // Get price data for all stocks
+  const priceData: { [key: string]: number[] } = {};
+  
+  for (const ticker of tickers) {
+    const prices = await client.stocks.prices(ticker, {
+      from: '2023-01-01',
+      to: '2024-01-31',
+      frame: 'daily'
+    });
+    
+    if (prices.data && prices.data.length > 0) {
+      priceData[ticker] = prices.data.map(p => p.close).reverse();
+    }
+  }
+  
+  // Calculate correlation matrix
+  const calculateCorrelation = (arr1: number[], arr2: number[]) => {
+    const n = Math.min(arr1.length, arr2.length);
+    const mean1 = arr1.reduce((a, b) => a + b) / n;
+    const mean2 = arr2.reduce((a, b) => a + b) / n;
+    
+    let numerator = 0;
+    let denom1 = 0;
+    let denom2 = 0;
+    
+    for (let i = 0; i < n; i++) {
+      numerator += (arr1[i] - mean1) * (arr2[i] - mean2);
+      denom1 += Math.pow(arr1[i] - mean1, 2);
+      denom2 += Math.pow(arr2[i] - mean2, 2);
+    }
+    
+    return numerator / Math.sqrt(denom1 * denom2);
+  };
+  
+  console.log('Correlation Matrix:');
+  console.log('\n' + '       ' + tickers.join('    '));
+  
+  for (const ticker1 of tickers) {
+    let row = ticker1.padEnd(7);
+    for (const ticker2 of tickers) {
+      if (priceData[ticker1] && priceData[ticker2]) {
+        const corr = calculateCorrelation(priceData[ticker1], priceData[ticker2]);
+        row += corr.toFixed(2).padStart(7);
+      } else {
+        row += 'N/A'.padStart(7);
+      }
+    }
+    console.log(row);
+  }
+}
+
+analyzeCorrelations(['AAPL', 'MSFT', 'GOOGL', 'TSLA']);
+```
+
+## Next Steps
+
+- Apply these techniques in [Portfolio Tracking](/examples/portfolio-tracking)
+- Learn advanced [Stock Analysis](/examples/stock-analysis) methods
+- Review the [Economic Data API](/api/econ) for macro analysis

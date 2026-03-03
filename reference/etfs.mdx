@@ -1,0 +1,58 @@
+---
+title: ETFAPI
+description: ETF information, holdings, and exposures
+---
+
+## fund()
+
+```typescript
+fund(ticker: string): Promise<ApiResponse>
+```
+
+Get ETF fund information.
+
+<ParamField path="ticker" type="string" required>
+  ETF ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const fundInfo = await client.etfs.fund('SPY');
+```
+
+## holdings()
+
+```typescript
+holdings(ticker: string): Promise<ApiResponse>
+```
+
+Get ETF holdings and portfolio composition.
+
+<ParamField path="ticker" type="string" required>
+  ETF ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const holdings = await client.etfs.holdings('SPY');
+```
+
+## exposure()
+
+```typescript
+exposure(ticker: string): Promise<ApiResponse>
+```
+
+Get ETF sector and geographic exposures.
+
+<ParamField path="ticker" type="string" required>
+  ETF ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const exposure = await client.etfs.exposure('SPY');
+```

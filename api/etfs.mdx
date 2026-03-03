@@ -1,0 +1,396 @@
+---
+title: 'ETFs API'
+description: 'Access ETF data including fund information, holdings, and sector exposure'
+---
+
+## Overview
+
+The ETFs API provides comprehensive data for exchange-traded funds, including fund details, holdings information, and sector/geographic exposure analysis.
+
+## Methods
+
+### fund()
+
+Get detailed fund information for a specific ETF.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get SPY fund information
+const spyFund = await axion.etfs.fund('SPY');
+
+// Get QQQ fund information
+const qqqFund = await axion.etfs.fund('QQQ');
+
+// Get VTI fund information
+const vtiFund = await axion.etfs.fund('VTI');
+```
+
+<ParamField path="ticker" type="string" required>
+  The ETF ticker symbol (e.g., 'SPY', 'QQQ', 'VTI')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed ETF fund information
+  <ResponseField name="ticker" type="string">
+    ETF ticker symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the ETF
+  </ResponseField>
+  <ResponseField name="description" type="string">
+    Fund description and investment objective
+  </ResponseField>
+  <ResponseField name="price" type="number">
+    Current price per share
+  </ResponseField>
+  <ResponseField name="nav" type="number">
+    Net asset value
+  </ResponseField>
+  <ResponseField name="aum" type="number">
+    Assets under management
+  </ResponseField>
+  <ResponseField name="expenseRatio" type="number">
+    Annual expense ratio
+  </ResponseField>
+  <ResponseField name="inceptionDate" type="string">
+    Fund inception date
+  </ResponseField>
+  <ResponseField name="dividendYield" type="number">
+    Dividend yield percentage
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Average daily trading volume
+  </ResponseField>
+</ResponseField>
+
+### holdings()
+
+Get the top holdings of an ETF.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get SPY holdings
+const spyHoldings = await axion.etfs.holdings('SPY');
+
+// Get ARK Innovation holdings
+const arkHoldings = await axion.etfs.holdings('ARKK');
+
+// Get bond ETF holdings
+const bondHoldings = await axion.etfs.holdings('AGG');
+```
+
+<ParamField path="ticker" type="string" required>
+  The ETF ticker symbol (e.g., 'SPY', 'ARKK', 'AGG')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of holding objects
+  <ResponseField name="ticker" type="string">
+    Ticker symbol of the holding
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Name of the holding
+  </ResponseField>
+  <ResponseField name="weight" type="number">
+    Portfolio weight percentage
+  </ResponseField>
+  <ResponseField name="shares" type="number">
+    Number of shares held
+  </ResponseField>
+  <ResponseField name="marketValue" type="number">
+    Market value of the holding
+  </ResponseField>
+  <ResponseField name="assetType" type="string">
+    Type of asset (stock, bond, etc.)
+  </ResponseField>
+</ResponseField>
+
+### exposure()
+
+Get sector and geographic exposure breakdown for an ETF.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get SPY sector exposure
+const spyExposure = await axion.etfs.exposure('SPY');
+
+// Get technology ETF exposure
+const techExposure = await axion.etfs.exposure('XLK');
+
+// Get international ETF exposure
+const intlExposure = await axion.etfs.exposure('VXUS');
+```
+
+<ParamField path="ticker" type="string" required>
+  The ETF ticker symbol (e.g., 'SPY', 'XLK', 'VXUS')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Exposure breakdown information
+  <ResponseField name="sectors" type="array">
+    Sector exposure breakdown
+    <ResponseField name="name" type="string">
+      Sector name
+    </ResponseField>
+    <ResponseField name="weight" type="number">
+      Percentage allocation to this sector
+    </ResponseField>
+  </ResponseField>
+  <ResponseField name="countries" type="array">
+    Geographic exposure breakdown
+    <ResponseField name="name" type="string">
+      Country name
+    </ResponseField>
+    <ResponseField name="weight" type="number">
+      Percentage allocation to this country
+    </ResponseField>
+  </ResponseField>
+  <ResponseField name="assetClasses" type="array">
+    Asset class breakdown
+    <ResponseField name="name" type="string">
+      Asset class name
+    </ResponseField>
+    <ResponseField name="weight" type="number">
+      Percentage allocation to this asset class
+    </ResponseField>
+  </ResponseField>
+</ResponseField>
+
+## Example: ETF Portfolio Analyzer
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+interface PortfolioPosition {
+  ticker: string;
+  shares: number;
+}
+
+async function analyzeETFPortfolio(positions: PortfolioPosition[]) {
+  let totalValue = 0;
+  const portfolio = [];
+
+  for (const position of positions) {
+    const fundInfo = await axion.etfs.fund(position.ticker);
+    const value = fundInfo.data.price * position.shares;
+    
+    totalValue += value;
+    
+    portfolio.push({
+      ticker: position.ticker,
+      name: fundInfo.data.name,
+      shares: position.shares,
+      price: fundInfo.data.price,
+      value: value,
+      expenseRatio: fundInfo.data.expenseRatio,
+      dividendYield: fundInfo.data.dividendYield
+    });
+  }
+
+  // Calculate weighted average metrics
+  const avgExpenseRatio = portfolio.reduce((sum, p) => 
+    sum + (p.expenseRatio * (p.value / totalValue)), 0);
+  const avgDividendYield = portfolio.reduce((sum, p) => 
+    sum + (p.dividendYield * (p.value / totalValue)), 0);
+
+  return {
+    totalValue,
+    positions: portfolio,
+    weightedAvgExpenseRatio: avgExpenseRatio,
+    weightedAvgDividendYield: avgDividendYield
+  };
+}
+
+// Analyze a portfolio
+const analysis = await analyzeETFPortfolio([
+  { ticker: 'SPY', shares: 10 },
+  { ticker: 'QQQ', shares: 5 },
+  { ticker: 'AGG', shares: 20 }
+]);
+
+console.log(`Total Portfolio Value: $${analysis.totalValue.toFixed(2)}`);
+console.log(`Avg Expense Ratio: ${analysis.weightedAvgExpenseRatio.toFixed(3)}%`);
+console.log(`Avg Dividend Yield: ${analysis.weightedAvgDividendYield.toFixed(2)}%`);
+console.log('\nPositions:');
+analysis.positions.forEach(p => {
+  const weight = (p.value / analysis.totalValue) * 100;
+  console.log(`  ${p.ticker}: $${p.value.toFixed(2)} (${weight.toFixed(1)}%)`);
+});
+```
+
+## Example: ETF Holdings Analysis
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeTopHoldings(ticker: string, topN: number = 10) {
+  const [fundInfo, holdings] = await Promise.all([
+    axion.etfs.fund(ticker),
+    axion.etfs.holdings(ticker)
+  ]);
+  
+  const topHoldings = holdings.data.slice(0, topN);
+  const topHoldingsWeight = topHoldings.reduce((sum, h) => sum + h.weight, 0);
+  
+  return {
+    fund: fundInfo.data.name,
+    ticker,
+    totalHoldings: holdings.data.length,
+    topHoldings,
+    topHoldingsWeight,
+    concentration: topHoldingsWeight / topN
+  };
+}
+
+// Analyze SPY's top 10 holdings
+const holdingsAnalysis = await analyzeTopHoldings('SPY', 10);
+
+console.log(`${holdingsAnalysis.fund} (${holdingsAnalysis.ticker})`);
+console.log(`Total Holdings: ${holdingsAnalysis.totalHoldings}`);
+console.log(`Top 10 Weight: ${holdingsAnalysis.topHoldingsWeight.toFixed(2)}%`);
+console.log('\nTop Holdings:');
+holdingsAnalysis.topHoldings.forEach((h, i) => {
+  console.log(`${i + 1}. ${h.name} (${h.ticker}): ${h.weight.toFixed(2)}%`);
+});
+```
+
+## Example: Sector Exposure Comparison
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function compareSectorExposure(tickers: string[]) {
+  const exposures = [];
+
+  for (const ticker of tickers) {
+    const [fundInfo, exposure] = await Promise.all([
+      axion.etfs.fund(ticker),
+      axion.etfs.exposure(ticker)
+    ]);
+    
+    exposures.push({
+      ticker,
+      name: fundInfo.data.name,
+      sectors: exposure.data.sectors
+    });
+  }
+
+  // Get all unique sectors
+  const allSectors = new Set<string>();
+  exposures.forEach(e => {
+    e.sectors.forEach(s => allSectors.add(s.name));
+  });
+
+  return {
+    etfs: exposures,
+    sectors: Array.from(allSectors)
+  };
+}
+
+// Compare sector exposure across different ETFs
+const comparison = await compareSectorExposure(['SPY', 'QQQ', 'XLK']);
+
+console.log('Sector Exposure Comparison:\n');
+comparison.sectors.forEach(sector => {
+  console.log(`${sector}:`);
+  comparison.etfs.forEach(etf => {
+    const sectorData = etf.sectors.find(s => s.name === sector);
+    const weight = sectorData ? sectorData.weight.toFixed(2) : '0.00';
+    console.log(`  ${etf.ticker}: ${weight}%`);
+  });
+  console.log('');
+});
+```
+
+## Example: ETF Screener
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+interface ScreenerCriteria {
+  maxExpenseRatio?: number;
+  minDividendYield?: number;
+  minAUM?: number;
+}
+
+async function screenETFs(tickers: string[], criteria: ScreenerCriteria) {
+  const results = [];
+
+  for (const ticker of tickers) {
+    try {
+      const fundInfo = await axion.etfs.fund(ticker);
+      const data = fundInfo.data;
+      
+      // Apply screening criteria
+      if (criteria.maxExpenseRatio && data.expenseRatio > criteria.maxExpenseRatio) {
+        continue;
+      }
+      if (criteria.minDividendYield && data.dividendYield < criteria.minDividendYield) {
+        continue;
+      }
+      if (criteria.minAUM && data.aum < criteria.minAUM) {
+        continue;
+      }
+      
+      results.push({
+        ticker,
+        name: data.name,
+        expenseRatio: data.expenseRatio,
+        dividendYield: data.dividendYield,
+        aum: data.aum,
+        price: data.price
+      });
+    } catch (error) {
+      console.error(`Error screening ${ticker}:`, error.message);
+    }
+  }
+
+  return results;
+}
+
+// Screen for low-cost dividend ETFs
+const screened = await screenETFs(
+  ['SPY', 'VTI', 'VYM', 'SCHD', 'DVY'],
+  {
+    maxExpenseRatio: 0.10,
+    minDividendYield: 2.0,
+    minAUM: 1_000_000_000
+  }
+);
+
+console.log('ETFs Meeting Criteria:');
+screened.forEach(etf => {
+  console.log(`${etf.ticker} - ${etf.name}`);
+  console.log(`  Price: $${etf.price.toFixed(2)}`);
+  console.log(`  Expense Ratio: ${etf.expenseRatio}%`);
+  console.log(`  Dividend Yield: ${etf.dividendYield.toFixed(2)}%`);
+  console.log(`  AUM: $${(etf.aum / 1_000_000_000).toFixed(2)}B`);
+});
+```
+
+## Error Handling
+
+```typescript
+try {
+  const data = await axion.etfs.fund('INVALID');
+} catch (error) {
+  if (error.message.includes('HTTP Error 404')) {
+    console.error('ETF not found');
+  } else if (error.message.includes('Authentication required')) {
+    console.error('API key is required');
+  } else {
+    console.error('An error occurred:', error.message);
+  }
+}
+```

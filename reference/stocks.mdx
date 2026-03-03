@@ -1,0 +1,78 @@
+---
+title: StocksAPI
+description: Stock market data and price history
+---
+
+## tickers()
+
+```typescript
+tickers(params?: { country?: string, exchange?: string }): Promise<ApiResponse>
+```
+
+Get list of available stock tickers.
+
+<ParamField path="params.country" type="string" optional>
+  Filter by country code
+</ParamField>
+
+<ParamField path="params.exchange" type="string" optional>
+  Filter by exchange code
+</ParamField>
+
+### Example
+
+```typescript
+const tickers = await client.stocks.tickers({ exchange: 'NASDAQ' });
+```
+
+## ticker()
+
+```typescript
+ticker(ticker: string): Promise<ApiResponse>
+```
+
+Get detailed information for a specific stock ticker.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol (e.g., "AAPL")
+</ParamField>
+
+### Example
+
+```typescript
+const info = await client.stocks.ticker('AAPL');
+```
+
+## prices()
+
+```typescript
+prices(ticker: string, params?: { from?: string, to?: string, frame?: string }): Promise<ApiResponse>
+```
+
+Get historical price data for a stock.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.from" type="string" optional>
+  Start date for price history
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for price history
+</ParamField>
+
+<ParamField path="params.frame" type="string" optional>
+  Time frame (e.g., "1d", "1h")
+</ParamField>
+
+### Example
+
+```typescript
+const prices = await client.stocks.prices('AAPL', {
+  from: '2024-01-01',
+  to: '2024-12-31',
+  frame: '1d'
+});
+```

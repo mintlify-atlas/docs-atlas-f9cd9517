@@ -1,0 +1,411 @@
+---
+title: 'Portfolio Tracking'
+description: 'Build a portfolio tracker to monitor holdings, performance, and risk metrics'
+icon: 'briefcase'
+---
+
+This example demonstrates how to build a comprehensive portfolio tracking system using the Axion SDK. Track multiple positions, calculate returns, analyze risk, and monitor portfolio performance in real-time.
+
+## Portfolio Tracker Class
+
+A complete portfolio management system:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+interface Position {
+  ticker: string;
+  quantity: number;
+  costBasis: number;  // Average purchase price
+  purchaseDate: string;
+}
+
+class PortfolioTracker {
+  private client: Axion;
+  private positions: Position[] = [];
+  
+  constructor(apiKey: string) {
+    this.client = new Axion(apiKey);
+  }
+  
+  addPosition(ticker: string, quantity: number, costBasis: number, purchaseDate: string) {
+    this.positions.push({ ticker, quantity, costBasis, purchaseDate });
+    console.log(`Added ${quantity} shares of ${ticker} at $${costBasis}`);
+  }
+  
+  async getCurrentValue(): Promise<number> {
+    let totalValue = 0;
+    
+    for (const position of this.positions) {
+      try {
+        const stockData = await this.client.stocks.ticker(position.ticker);
+        const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+        const positionValue = currentPrice * position.quantity;
+        totalValue += positionValue;
+        
+        console.log(`${position.ticker}: ${position.quantity} shares @ $${currentPrice} = $${positionValue.toFixed(2)}`);
+      } catch (error) {
+        console.error(`Failed to get price for ${position.ticker}:`, error.message);
+      }
+    }
+    
+    return totalValue;
+  }
+  
+  async getPerformance() {
+    const performanceData = [];
+    let totalCost = 0;
+    let totalValue = 0;
+    
+    for (const position of this.positions) {
+      try {
+        const stockData = await this.client.stocks.ticker(position.ticker);
+        const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+        
+        const cost = position.costBasis * position.quantity;
+        const value = currentPrice * position.quantity;
+        const gain = value - cost;
+        const gainPercent = (gain / cost) * 100;
+        
+        totalCost += cost;
+        totalValue += value;
+        
+        performanceData.push({
+          ticker: position.ticker,
+          quantity: position.quantity,
+          costBasis: `$${position.costBasis.toFixed(2)}`,
+          currentPrice: `$${currentPrice.toFixed(2)}`,
+          cost: `$${cost.toFixed(2)}`,
+          value: `$${value.toFixed(2)}`,
+          gain: `$${gain.toFixed(2)}`,
+          gainPercent: `${gainPercent.toFixed(2)}%`
+        });
+      } catch (error) {
+        console.error(`Failed to get performance for ${position.ticker}`);
+      }
+    }
+    
+    const totalGain = totalValue - totalCost;
+    const totalGainPercent = (totalGain / totalCost) * 100;
+    
+    console.log('\n=== Portfolio Performance ===');
+    console.table(performanceData);
+    console.log(`\nTotal Cost: $${totalCost.toFixed(2)}`);
+    console.log(`Total Value: $${totalValue.toFixed(2)}`);
+    console.log(`Total Gain: $${totalGain.toFixed(2)} (${totalGainPercent.toFixed(2)}%)`);
+    
+    return { performanceData, totalCost, totalValue, totalGain, totalGainPercent };
+  }
+  
+  async getDiversification() {
+    const sectorAllocation: { [key: string]: number } = {};
+    let totalValue = 0;
+    
+    for (const position of this.positions) {
+      try {
+        const [stockData, profile] = await Promise.all([
+          this.client.stocks.ticker(position.ticker),
+          this.client.profiles.info(position.ticker)
+        ]);
+        
+        const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+        const positionValue = currentPrice * position.quantity;
+        const sector = profile.data.sector || 'Unknown';
+        
+        sectorAllocation[sector] = (sectorAllocation[sector] || 0) + positionValue;
+        totalValue += positionValue;
+      } catch (error) {
+        console.error(`Failed to get sector for ${position.ticker}`);
+      }
+    }
+    
+    console.log('\n=== Sector Diversification ===');
+    Object.entries(sectorAllocation).forEach(([sector, value]) => {
+      const percentage = (value / totalValue) * 100;
+      console.log(`${sector}: $${value.toFixed(2)} (${percentage.toFixed(2)}%)`);
+    });
+    
+    return sectorAllocation;
+  }
+  
+  async getRiskMetrics() {
+    console.log('\n=== Risk Metrics ===');
+    
+    const volatilities = [];
+    
+    for (const position of this.positions) {
+      try {
+        // Get 6 months of price data
+        const prices = await this.client.stocks.prices(position.ticker, {
+          from: '2023-07-01',
+          to: '2024-01-31',
+          frame: 'daily'
+        });
+        
+        if (prices.data && prices.data.length > 1) {
+          // Calculate daily returns
+          const returns = [];
+          for (let i = 0; i < prices.data.length - 1; i++) {
+            const dailyReturn = (prices.data[i].close - prices.data[i + 1].close) / prices.data[i + 1].close;
+            returns.push(dailyReturn);
+          }
+          
+          // Calculate volatility (standard deviation of returns)
+          const avgReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+          const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+          const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized
+          
+          volatilities.push({ ticker: position.ticker, volatility });
+          console.log(`${position.ticker} Volatility: ${volatility.toFixed(2)}%`);
+        }
+      } catch (error) {
+        console.error(`Failed to calculate volatility for ${position.ticker}`);
+      }
+    }
+    
+    if (volatilities.length > 0) {
+      const avgVolatility = volatilities.reduce((sum, v) => sum + v.volatility, 0) / volatilities.length;
+      console.log(`\nPortfolio Average Volatility: ${avgVolatility.toFixed(2)}%`);
+    }
+    
+    return volatilities;
+  }
+}
+
+// Example usage
+const portfolio = new PortfolioTracker('your-api-key');
+
+// Add positions
+portfolio.addPosition('AAPL', 50, 150.00, '2023-06-01');
+portfolio.addPosition('MSFT', 30, 320.00, '2023-07-15');
+portfolio.addPosition('GOOGL', 20, 125.00, '2023-08-20');
+portfolio.addPosition('TSLA', 15, 240.00, '2023-09-10');
+
+// Run portfolio analysis
+async function analyzePortfolio() {
+  const currentValue = await portfolio.getCurrentValue();
+  console.log(`\nTotal Portfolio Value: $${currentValue.toFixed(2)}`);
+  
+  await portfolio.getPerformance();
+  await portfolio.getDiversification();
+  await portfolio.getRiskMetrics();
+}
+
+analyzePortfolio();
+```
+
+## Portfolio Rebalancing
+
+Automate portfolio rebalancing based on target allocations:
+
+```typescript
+interface TargetAllocation {
+  ticker: string;
+  targetPercent: number;
+}
+
+async function rebalancePortfolio(positions: Position[], targets: TargetAllocation[]) {
+  const client = new Axion('your-api-key');
+  
+  // Calculate current portfolio value
+  let totalValue = 0;
+  const currentValues: { [key: string]: number } = {};
+  
+  for (const position of positions) {
+    const stockData = await client.stocks.ticker(position.ticker);
+    const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+    const value = currentPrice * position.quantity;
+    currentValues[position.ticker] = value;
+    totalValue += value;
+  }
+  
+  console.log('=== Rebalancing Analysis ===\n');
+  console.log(`Total Portfolio Value: $${totalValue.toFixed(2)}\n`);
+  
+  const recommendations = [];
+  
+  for (const target of targets) {
+    const currentValue = currentValues[target.ticker] || 0;
+    const currentPercent = (currentValue / totalValue) * 100;
+    const targetValue = totalValue * (target.targetPercent / 100);
+    const difference = targetValue - currentValue;
+    const differencePercent = currentPercent - target.targetPercent;
+    
+    const stockData = await client.stocks.ticker(target.ticker);
+    const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+    const sharesToTrade = Math.round(difference / currentPrice);
+    
+    recommendations.push({
+      ticker: target.ticker,
+      currentPercent: `${currentPercent.toFixed(2)}%`,
+      targetPercent: `${target.targetPercent.toFixed(2)}%`,
+      difference: `${differencePercent.toFixed(2)}%`,
+      action: sharesToTrade > 0 ? 'BUY' : 'SELL',
+      shares: Math.abs(sharesToTrade),
+      amount: `$${Math.abs(difference).toFixed(2)}`
+    });
+  }
+  
+  console.table(recommendations);
+  return recommendations;
+}
+
+// Define target allocations
+const targets: TargetAllocation[] = [
+  { ticker: 'AAPL', targetPercent: 25 },
+  { ticker: 'MSFT', targetPercent: 25 },
+  { ticker: 'GOOGL', targetPercent: 25 },
+  { ticker: 'TSLA', targetPercent: 25 }
+];
+
+rebalancePortfolio(portfolio.positions, targets);
+```
+
+## Dividend Tracking
+
+Track dividend income across your portfolio:
+
+```typescript
+async function trackDividends(positions: Position[]) {
+  const client = new Axion('your-api-key');
+  
+  console.log('=== Dividend Tracking ===\n');
+  
+  let totalAnnualDividends = 0;
+  const dividendData = [];
+  
+  for (const position of positions) {
+    try {
+      const statistics = await client.profiles.statistics(position.ticker);
+      const calendar = await client.profiles.calendar(position.ticker);
+      
+      const dividendYield = statistics.data.dividendYield || 0;
+      const dividendRate = statistics.data.dividendRate || 0;
+      
+      if (dividendYield > 0) {
+        const stockData = await client.stocks.ticker(position.ticker);
+        const currentPrice = stockData.data.currentPrice || stockData.data.lastClose;
+        const positionValue = currentPrice * position.quantity;
+        const annualDividend = dividendRate * position.quantity;
+        
+        totalAnnualDividends += annualDividend;
+        
+        dividendData.push({
+          ticker: position.ticker,
+          shares: position.quantity,
+          dividendYield: `${(dividendYield * 100).toFixed(2)}%`,
+          annualDividend: `$${annualDividend.toFixed(2)}`,
+          nextDividend: calendar.data.dividends?.date || 'N/A'
+        });
+      }
+    } catch (error) {
+      console.log(`No dividend data for ${position.ticker}`);
+    }
+  }
+  
+  if (dividendData.length > 0) {
+    console.table(dividendData);
+    console.log(`\nTotal Annual Dividend Income: $${totalAnnualDividends.toFixed(2)}`);
+    console.log(`Monthly Income: $${(totalAnnualDividends / 12).toFixed(2)}`);
+  } else {
+    console.log('No dividend-paying stocks in portfolio');
+  }
+}
+```
+
+## News and Alerts
+
+Monitor portfolio news and set up alerts:
+
+```typescript
+async function monitorPortfolioNews(positions: Position[]) {
+  const client = new Axion('your-api-key');
+  
+  console.log('=== Portfolio News Monitor ===\n');
+  
+  for (const position of positions) {
+    try {
+      // Get company news
+      const news = await client.news.company(position.ticker);
+      
+      // Get sentiment
+      const sentiment = await client.sentiment.news(position.ticker);
+      
+      console.log(`\n${position.ticker} (${position.quantity} shares):`);
+      console.log(`Sentiment: ${sentiment.data.score > 0 ? 'Positive' : 'Negative'} (${sentiment.data.score})`);
+      
+      if (news.data && news.data.length > 0) {
+        console.log('Latest News:');
+        news.data.slice(0, 3).forEach((article: any, index: number) => {
+          console.log(`  ${index + 1}. ${article.title}`);
+          console.log(`     ${article.source} - ${article.publishedAt}`);
+        });
+      }
+      
+      // Check for significant price movements
+      const prices = await client.stocks.prices(position.ticker, {
+        from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        to: new Date().toISOString().split('T')[0]
+      });
+      
+      if (prices.data && prices.data.length > 1) {
+        const priceChange = ((prices.data[0].close - prices.data[prices.data.length - 1].close) / prices.data[prices.data.length - 1].close) * 100;
+        
+        if (Math.abs(priceChange) > 5) {
+          console.log(`  ⚠️  ALERT: ${priceChange > 0 ? '+' : ''}${priceChange.toFixed(2)}% price change this week`);
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to get news for ${position.ticker}`);
+    }
+  }
+}
+```
+
+## Portfolio Comparison
+
+Compare your portfolio against market indices:
+
+```typescript
+async function compareToMarket(positions: Position[], benchmark: string = 'SPY') {
+  const client = new Axion('your-api-key');
+  
+  console.log(`=== Portfolio vs ${benchmark} ===\n`);
+  
+  const startDate = '2023-01-01';
+  const endDate = '2024-01-31';
+  
+  // Calculate portfolio return
+  let portfolioReturn = 0;
+  
+  for (const position of positions) {
+    const prices = await client.stocks.prices(position.ticker, {
+      from: startDate,
+      to: endDate
+    });
+    
+    if (prices.data && prices.data.length > 1) {
+      const stockReturn = ((prices.data[0].close - prices.data[prices.data.length - 1].close) / prices.data[prices.data.length - 1].close) * 100;
+      portfolioReturn += stockReturn / positions.length; // Equal weight for simplicity
+    }
+  }
+  
+  // Get benchmark return
+  const benchmarkPrices = await client.stocks.prices(benchmark, {
+    from: startDate,
+    to: endDate
+  });
+  
+  const benchmarkReturn = ((benchmarkPrices.data[0].close - benchmarkPrices.data[benchmarkPrices.data.length - 1].close) / benchmarkPrices.data[benchmarkPrices.data.length - 1].close) * 100;
+  
+  console.log(`Portfolio Return: ${portfolioReturn.toFixed(2)}%`);
+  console.log(`${benchmark} Return: ${benchmarkReturn.toFixed(2)}%`);
+  console.log(`Outperformance: ${(portfolioReturn - benchmarkReturn).toFixed(2)}%`);
+}
+```
+
+## Next Steps
+
+- Learn about [Stock Analysis](/examples/stock-analysis) techniques
+- Explore [Market Research](/examples/market-research) strategies
+- Review the [Financials API](/api/financials) for deeper analysis

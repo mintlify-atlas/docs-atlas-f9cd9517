@@ -1,0 +1,205 @@
+---
+title: 'Filings API'
+description: 'Access SEC filings and regulatory documents'
+---
+
+The Filings API provides access to SEC filings including 10-K, 10-Q, 8-K, and other regulatory documents.
+
+## Get Recent Filings
+
+Retrieve recent filings for a company.
+
+```typescript
+const filings = await axion.filings.filings('AAPL', {
+  limit: 20,
+  form: '10-K'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="limit" type="number" default="10">
+  Number of filings to retrieve
+</ParamField>
+
+<ParamField query="form" type="string">
+  Filter by specific form type (e.g., '10-K', '10-Q', '8-K')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Array of recent filings with metadata and links
+</ResponseField>
+
+## Get Specific Form Type
+
+Retrieve filings for a specific form type.
+
+```typescript
+const tenKs = await axion.filings.forms('AAPL', '10-K', {
+  year: '2024',
+  quarter: 'Q1',
+  limit: 5
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField path="formType" type="string" required>
+  The form type to retrieve (e.g., '10-K', '10-Q', '8-K', 'DEF 14A')
+</ParamField>
+
+<ParamField query="year" type="string">
+  Filter by year (e.g., '2024')
+</ParamField>
+
+<ParamField query="quarter" type="string">
+  Filter by quarter (e.g., 'Q1', 'Q2', 'Q3', 'Q4')
+</ParamField>
+
+<ParamField query="limit" type="number" default="10">
+  Number of filings to retrieve
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Array of filings for the specified form type
+</ResponseField>
+
+## Get Form Descriptions
+
+Retrieve descriptions of available SEC form types.
+
+```typescript
+const formDescriptions = await axion.filings.descForms();
+```
+
+<ResponseField name="data" type="object">
+  Dictionary of form types and their descriptions
+</ResponseField>
+
+## Search Filings
+
+Search for filings by year, quarter, and other criteria.
+
+```typescript
+const searchResults = await axion.filings.search({
+  year: '2024',
+  quarter: 'Q1',
+  form: '10-Q',
+  ticker: 'AAPL'
+});
+```
+
+<ParamField query="year" type="string" required>
+  The year to search (e.g., '2024')
+</ParamField>
+
+<ParamField query="quarter" type="string" required>
+  The quarter to search (e.g., 'Q1', 'Q2', 'Q3', 'Q4')
+</ParamField>
+
+<ParamField query="form" type="string">
+  Filter by form type (e.g., '10-K', '10-Q', '8-K')
+</ParamField>
+
+<ParamField query="ticker" type="string">
+  Filter by ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Array of filings matching the search criteria
+</ResponseField>
+
+## Example Usage
+
+Here's a complete example showing how to work with SEC filings:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeSECFilings(ticker: string) {
+  try {
+    // Get all recent filings
+    const recentFilings = await axion.filings.filings(ticker, { limit: 10 });
+    console.log('Recent Filings:', recentFilings.data);
+    
+    // Get all 10-K annual reports
+    const annualReports = await axion.filings.forms(ticker, '10-K', { limit: 5 });
+    console.log('Annual Reports (10-K):', annualReports.data);
+    
+    // Get all 10-Q quarterly reports
+    const quarterlyReports = await axion.filings.forms(ticker, '10-Q', { limit: 10 });
+    console.log('Quarterly Reports (10-Q):', quarterlyReports.data);
+    
+    // Get 8-K current reports
+    const currentReports = await axion.filings.forms(ticker, '8-K', { limit: 20 });
+    console.log('Current Reports (8-K):', currentReports.data);
+    
+    // Search for specific quarter filings
+    const q1Filings = await axion.filings.search({
+      year: '2024',
+      quarter: 'Q1',
+      ticker: ticker
+    });
+    console.log('Q1 2024 Filings:', q1Filings.data);
+    
+  } catch (error) {
+    console.error('Error fetching filings:', error);
+  }
+}
+
+analyzeSECFilings('AAPL');
+```
+
+## Understanding Form Types
+
+Get information about different SEC form types:
+
+```typescript
+async function exploreFormTypes() {
+  try {
+    const descriptions = await axion.filings.descForms();
+    console.log('Available Form Types:', descriptions.data);
+    
+    // Common form types:
+    // 10-K: Annual report
+    // 10-Q: Quarterly report
+    // 8-K: Current report (material events)
+    // DEF 14A: Proxy statement
+    // S-1: Registration statement for IPO
+    // 13F: Institutional investment manager holdings
+    
+  } catch (error) {
+    console.error('Error fetching form descriptions:', error);
+  }
+}
+
+exploreFormTypes();
+```
+
+## Monitoring Recent Filings
+
+Monitor the most recent filings across multiple companies:
+
+```typescript
+async function monitorRecentFilings(tickers: string[]) {
+  for (const ticker of tickers) {
+    try {
+      const filings = await axion.filings.filings(ticker, { limit: 5 });
+      console.log(`\nRecent filings for ${ticker}:`);
+      filings.data.forEach((filing: any) => {
+        console.log(`- ${filing.formType}: ${filing.filingDate}`);
+      });
+    } catch (error) {
+      console.error(`Error fetching filings for ${ticker}:`, error);
+    }
+  }
+}
+
+monitorRecentFilings(['AAPL', 'MSFT', 'GOOGL']);
+```

@@ -1,0 +1,87 @@
+---
+title: EarningsAPI
+description: Earnings history, trends, and reports
+---
+
+## history()
+
+```typescript
+history(ticker: string): Promise<ApiResponse>
+```
+
+Get earnings history for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const history = await client.earnings.history('AAPL');
+```
+
+## trend()
+
+```typescript
+trend(ticker: string): Promise<ApiResponse>
+```
+
+Get earnings trend analysis.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const trend = await client.earnings.trend('AAPL');
+```
+
+## index()
+
+```typescript
+index(ticker: string): Promise<ApiResponse>
+```
+
+Get index trend data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const indexTrend = await client.earnings.index('AAPL');
+```
+
+## report()
+
+```typescript
+report(ticker: string, params: { year: string, quarter: string }): Promise<ApiResponse>
+```
+
+Get earnings report for a specific quarter.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.year" type="string" required>
+  Year of the earnings report
+</ParamField>
+
+<ParamField path="params.quarter" type="string" required>
+  Quarter of the earnings report
+</ParamField>
+
+### Example
+
+```typescript
+const report = await client.earnings.report('AAPL', {
+  year: '2024',
+  quarter: 'Q1'
+});
+```

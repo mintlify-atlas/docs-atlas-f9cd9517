@@ -1,0 +1,22 @@
+---
+title: WebTrafficAPI
+description: Website traffic analytics
+---
+
+## traffic()
+
+```typescript
+traffic(ticker: string): Promise<ApiResponse>
+```
+
+Get web traffic data for a company's website.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const trafficData = await client.webTraffic.traffic('AAPL');
+```

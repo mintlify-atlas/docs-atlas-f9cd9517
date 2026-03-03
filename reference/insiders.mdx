@@ -1,0 +1,112 @@
+---
+title: InsidersAPI
+description: Insider trading and institutional ownership
+---
+
+## funds()
+
+```typescript
+funds(ticker: string): Promise<ApiResponse>
+```
+
+Get fund ownership data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const funds = await client.insiders.funds('AAPL');
+```
+
+## individuals()
+
+```typescript
+individuals(ticker: string): Promise<ApiResponse>
+```
+
+Get insider holders (individuals).
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const individuals = await client.insiders.individuals('AAPL');
+```
+
+## institutions()
+
+```typescript
+institutions(ticker: string): Promise<ApiResponse>
+```
+
+Get institutional ownership data.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const institutions = await client.insiders.institutions('AAPL');
+```
+
+## ownership()
+
+```typescript
+ownership(ticker: string): Promise<ApiResponse>
+```
+
+Get major holders breakdown.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const ownership = await client.insiders.ownership('AAPL');
+```
+
+## activity()
+
+```typescript
+activity(ticker: string): Promise<ApiResponse>
+```
+
+Get net share purchase activity.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const activity = await client.insiders.activity('AAPL');
+```
+
+## transactions()
+
+```typescript
+transactions(ticker: string): Promise<ApiResponse>
+```
+
+Get insider transactions.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const transactions = await client.insiders.transactions('AAPL');
+```

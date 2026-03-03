@@ -1,0 +1,157 @@
+---
+title: 'Introduction to Axion SDK'
+description: 'Comprehensive financial data API for stocks, crypto, ETFs, economic indicators, and more'
+---
+
+<img
+  className="block dark:hidden"
+  src="/images/hero-light.svg"
+  alt="Hero Light"
+/>
+<img
+  className="hidden dark:block"
+  src="/images/hero-dark.svg"
+  alt="Hero Dark"
+/>
+
+## Welcome to Axion SDK
+
+Axion SDK is a powerful Node.js library that provides seamless access to comprehensive financial data across multiple asset classes. Build sophisticated financial applications with real-time market data, fundamental analysis, sentiment insights, and alternative data sources.
+
+<CardGroup cols={2}>
+  <Card
+    title="Multiple Asset Classes"
+    icon="chart-line"
+    href="#comprehensive-coverage"
+  >
+    Access stocks, crypto, ETFs, forex, futures, and indices all through a unified API
+  </Card>
+  <Card
+    title="Fundamental Data"
+    icon="building-columns"
+    href="#fundamental-analysis"
+  >
+    Get detailed financials, earnings reports, SEC filings, and company profiles
+  </Card>
+  <Card
+    title="Alternative Data"
+    icon="brain"
+    href="#alternative-insights"
+  >
+    Leverage sentiment analysis, ESG scores, supply chain data, and web traffic metrics
+  </Card>
+  <Card
+    title="Economic Indicators"
+    icon="globe"
+    href="#economic-data"
+  >
+    Track economic calendars, search datasets, and monitor global economic indicators
+  </Card>
+</CardGroup>
+
+## Comprehensive Coverage
+
+The Axion SDK provides access to 18 specialized API modules, each designed for specific financial data needs:
+
+### Market Data APIs
+- **Stocks** - Tickers, prices, and historical data for equities
+- **Crypto** - Cryptocurrency spot prices and market data
+- **ETFs** - Fund details, holdings, and exposure analysis
+- **Forex** - Foreign exchange rates and currency pairs
+- **Futures** - Futures contracts and derivatives
+- **Indices** - Market indices and benchmarks
+
+### Fundamental Analysis
+- **Profiles** - Company information, statistics, and summaries
+- **Financials** - Revenue, income statements, balance sheets, and cash flow
+- **Earnings** - Earnings history, trends, and reports
+- **Filings** - SEC filings including 10-K, 10-Q, and 8-K forms
+- **Insiders** - Institutional ownership, insider transactions, and fund holdings
+
+### Alternative Insights
+- **Sentiment** - Social media, news, and analyst sentiment analysis
+- **ESG** - Environmental, Social, and Governance scores
+- **Supply Chain** - Customer, supplier, and peer relationship data
+- **Web Traffic** - Website traffic analytics for public companies
+- **Credit** - Credit ratings and credit-related data
+
+### News & Economic Data
+- **News** - General market news, company-specific news, and category feeds
+- **Economic Data** - Economic indicators, calendars, and dataset search
+
+## Quick Example
+
+Here's how simple it is to get started with the Axion SDK:
+
+```javascript
+import { Axion } from '@axionquant/sdk';
+
+// Initialize the client
+const client = new Axion('your-api-key');
+
+// Get stock information
+const stock = await client.stocks.ticker('AAPL');
+
+// Fetch historical prices
+const prices = await client.stocks.prices('AAPL', {
+  from: '2024-01-01',
+  to: '2024-01-31',
+  frame: 'daily'
+});
+
+// Get company sentiment
+const sentiment = await client.sentiment.all('AAPL');
+```
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion title="TypeScript Support">
+    Built with TypeScript for full type safety and IntelliSense support in your IDE.
+  </Accordion>
+  
+  <Accordion title="Promise-Based API">
+    All methods return promises, making it easy to use with async/await or traditional promise chains.
+  </Accordion>
+  
+  <Accordion title="Comprehensive Error Handling">
+    Detailed error messages for HTTP errors, connection issues, and authentication failures.
+  </Accordion>
+  
+  <Accordion title="Flexible Parameters">
+    Optional parameters allow you to customize requests with date ranges, filters, and pagination.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Install the SDK using npm, yarn, or pnpm
+  </Card>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Build your first application in minutes
+  </Card>
+  <Card
+    title="Authentication"
+    icon="key"
+    href="/authentication"
+  >
+    Learn how to configure your API key
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/reference/client"
+  >
+    Explore the complete API documentation
+  </Card>
+</CardGroup>

@@ -1,0 +1,216 @@
+---
+title: 'Error Handling'
+description: 'Understand and handle errors in the Axion SDK'
+---
+
+## Overview
+
+The Axion SDK provides structured error handling for all API requests. All errors are thrown as standard JavaScript `Error` objects with descriptive messages that help you identify and resolve issues quickly.
+
+## Error Types
+
+The SDK distinguishes between three main categories of errors:
+
+### HTTP Errors
+
+HTTP errors occur when the API returns an error response (4xx or 5xx status codes).
+
+```typescript
+try {
+  const data = await client.stocks.ticker('INVALID');
+} catch (error) {
+  console.error(error.message);
+  // Output: "HTTP Error 404: Ticker not found"
+}
+```
+
+<Note>
+HTTP errors include the status code and the error message returned by the API, making it easy to identify the specific issue.
+</Note>
+
+### Connection Errors
+
+Connection errors occur when the SDK cannot establish a connection to the API server.
+
+```typescript
+try {
+  const data = await client.stocks.ticker('AAPL');
+} catch (error) {
+  console.error(error.message);
+  // Output: "Connection Error: Could not connect to https://api.axionquant.com"
+}
+```
+
+<Warning>
+Connection errors typically indicate network issues, firewall restrictions, or API downtime. Check your internet connection and the API status page.
+</Warning>
+
+### Authentication Errors
+
+Authentication errors occur when you attempt to access protected endpoints without providing an API key.
+
+```typescript
+const client = new Axion(); // No API key provided
+
+try {
+  const data = await client.stocks.ticker('AAPL');
+} catch (error) {
+  console.error(error.message);
+  // Output: "Authentication required but no API key provided to client."
+}
+```
+
+<Warning>
+Most endpoints require authentication. Make sure to initialize the client with your API key when accessing protected resources.
+</Warning>
+
+## Error Handling Implementation
+
+The SDK's error handling is implemented in the `_request` method of the Axion class:
+
+```typescript
+async _request(method: string, path: string, params: Record<string, any> = {}, 
+               data: Record<string, any> = {}, authRequired: boolean = true): Promise<ApiResponse> {
+  const config = {
+    method,
+    url: path,
+    params,
+    data,
+    headers: { ...this.client.defaults.headers.common }
+  };
+
+  if (!authRequired) {
+    delete config.headers["Authorization"];
+  } else if (authRequired && !this.apiKey) {
+    throw new Error("Authentication required but no API key provided to client.");
+  }
+
+  try {
+    const response = await this.client.request(config);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    if (axiosError.response) {
+      const errorData = axiosError.response.data as { message?: string };
+      throw new Error(`HTTP Error ${axiosError.response.status}: ${errorData?.message || 'Unknown HTTP error'}`);
+    } else if (axiosError.request) {
+      throw new Error(`Connection Error: Could not connect to ${BASE_URL}`);
+    } else {
+      throw new Error(`Request Error: ${axiosError.message}`);
+    }
+  }
+}
+```
+
+## Best Practices
+
+### Always Use Try-Catch Blocks
+
+Wrap all API calls in try-catch blocks to handle potential errors gracefully:
+
+```typescript
+async function getStockData(ticker: string) {
+  try {
+    const data = await client.stocks.ticker(ticker);
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch stock data:', error.message);
+    // Handle the error appropriately
+    return null;
+  }
+}
+```
+
+### Parse Error Messages
+
+Extract useful information from error messages to provide better user feedback:
+
+```typescript
+try {
+  const data = await client.stocks.ticker('AAPL');
+} catch (error) {
+  const message = error.message;
+  
+  if (message.includes('HTTP Error 401')) {
+    console.error('Invalid API key');
+  } else if (message.includes('HTTP Error 404')) {
+    console.error('Ticker not found');
+  } else if (message.includes('HTTP Error 429')) {
+    console.error('Rate limit exceeded');
+  } else if (message.includes('Connection Error')) {
+    console.error('Network issue - please try again');
+  } else {
+    console.error('An unexpected error occurred');
+  }
+}
+```
+
+### Implement Retry Logic
+
+For transient errors like network issues or rate limits, implement retry logic:
+
+```typescript
+async function fetchWithRetry(fn: () => Promise<any>, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const message = error.message;
+      
+      if (message.includes('Connection Error') && i < maxRetries - 1) {
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+        continue;
+      }
+      
+      throw error;
+    }
+  }
+}
+
+// Usage
+const data = await fetchWithRetry(() => client.stocks.ticker('AAPL'));
+```
+
+## Troubleshooting Common Errors
+
+### "Authentication required but no API key provided to client"
+
+**Cause:** You're trying to access a protected endpoint without an API key.
+
+**Solution:** Initialize the Axion client with your API key:
+
+```typescript
+const client = new Axion('your-api-key-here');
+```
+
+### "HTTP Error 401: Unauthorized"
+
+**Cause:** Your API key is invalid or has been revoked.
+
+**Solution:** Verify your API key is correct and hasn't expired. Generate a new key if needed.
+
+### "HTTP Error 404: Not Found"
+
+**Cause:** The requested resource doesn't exist (e.g., invalid ticker symbol).
+
+**Solution:** Double-check the resource identifier (ticker, series ID, etc.) you're requesting.
+
+### "HTTP Error 429: Too Many Requests"
+
+**Cause:** You've exceeded the API rate limit for your plan.
+
+**Solution:** Implement rate limiting in your application or upgrade your plan for higher limits.
+
+### "Connection Error: Could not connect to https://api.axionquant.com"
+
+**Cause:** Network connectivity issues or API downtime.
+
+**Solution:** 
+- Check your internet connection
+- Verify firewall settings aren't blocking the API
+- Check the API status page for any ongoing incidents
+
+<Note>
+If you continue experiencing issues, contact support with the full error message and request details.
+</Note>

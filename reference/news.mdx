@@ -1,0 +1,72 @@
+---
+title: NewsAPI
+description: Financial news and market updates
+---
+
+## general()
+
+```typescript
+general(): Promise<ApiResponse>
+```
+
+Get general financial news.
+
+### Example
+
+```typescript
+const news = await client.news.general();
+```
+
+## company()
+
+```typescript
+company(ticker: string): Promise<ApiResponse>
+```
+
+Get company-specific news.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const news = await client.news.company('AAPL');
+```
+
+## country()
+
+```typescript
+country(country: string): Promise<ApiResponse>
+```
+
+Get news filtered by country.
+
+<ParamField path="country" type="string" required>
+  Country code (e.g., "US", "UK")
+</ParamField>
+
+### Example
+
+```typescript
+const news = await client.news.country('US');
+```
+
+## category()
+
+```typescript
+category(category: string): Promise<ApiResponse>
+```
+
+Get news filtered by category.
+
+<ParamField path="category" type="string" required>
+  News category
+</ParamField>
+
+### Example
+
+```typescript
+const news = await client.news.category('technology');
+```

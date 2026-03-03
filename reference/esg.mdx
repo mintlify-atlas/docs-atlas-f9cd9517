@@ -1,0 +1,22 @@
+---
+title: ESGAPI
+description: Environmental, Social, and Governance data
+---
+
+## data()
+
+```typescript
+data(ticker: string): Promise<ApiResponse>
+```
+
+Get ESG scores and metrics for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const esgData = await client.esg.data('AAPL');
+```

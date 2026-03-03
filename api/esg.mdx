@@ -1,0 +1,269 @@
+---
+title: ESG API
+description: Access Environmental, Social, and Governance (ESG) ratings and metrics
+---
+
+# ESG API
+
+The ESG API provides Environmental, Social, and Governance (ESG) ratings and metrics for publicly traded companies. Use this data to evaluate corporate sustainability, ethical practices, and governance quality.
+
+## Methods
+
+### data()
+
+Retrieve comprehensive ESG data and ratings for a company.
+
+```typescript
+const axion = new Axion('your-api-key');
+const esg = await axion.esg.data('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'MSFT', 'TSLA')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Comprehensive ESG metrics including:
+- Environmental score and metrics
+- Social responsibility ratings
+- Governance quality indicators
+- Overall ESG score
+- Controversy level
+- Sustainability ratings
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "ticker": "AAPL",
+    "overall": 82,
+    "environmental": 85,
+    "social": 78,
+    "governance": 84,
+    "controversyLevel": 2,
+    "lastUpdated": "2026-03-01",
+    "metrics": {
+      "carbonEmissions": "low",
+      "renewableEnergy": 93,
+      "diversityScore": 75,
+      "boardIndependence": 88
+    }
+  }
+}
+```
+
+## Use Cases
+
+### ESG Portfolio Screening
+
+Filter investments based on ESG criteria:
+
+```typescript
+const axion = new Axion('your-api-key');
+const candidates = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'XOM'];
+
+const esgScores = await Promise.all(
+  candidates.map(async ticker => {
+    const esg = await axion.esg.data(ticker);
+    return {
+      ticker,
+      overall: esg.data.overall,
+      environmental: esg.data.environmental,
+      social: esg.data.social,
+      governance: esg.data.governance
+    };
+  })
+);
+
+// Filter for high ESG scores
+const esgCompliant = esgScores.filter(stock => 
+  stock.overall >= 70 &&
+  stock.environmental >= 65 &&
+  stock.governance >= 70
+);
+
+console.log('ESG-compliant investments:', esgCompliant);
+```
+
+### Environmental Focus Fund
+
+Build a portfolio focused on environmental performance:
+
+```typescript
+const MIN_ENVIRONMENTAL_SCORE = 80;
+
+async function findGreenCompanies(tickers: string[]) {
+  const results = [];
+  
+  for (const ticker of tickers) {
+    const esg = await axion.esg.data(ticker);
+    
+    if (esg.data.environmental >= MIN_ENVIRONMENTAL_SCORE) {
+      results.push({
+        ticker,
+        envScore: esg.data.environmental,
+        renewableEnergy: esg.data.metrics?.renewableEnergy,
+        carbonEmissions: esg.data.metrics?.carbonEmissions
+      });
+    }
+  }
+  
+  // Sort by environmental score
+  return results.sort((a, b) => b.envScore - a.envScore);
+}
+
+const techStocks = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META'];
+const greenTech = await findGreenCompanies(techStocks);
+
+console.log('Top environmental performers:', greenTech);
+```
+
+### ESG Controversy Monitor
+
+Monitor companies for ESG controversies:
+
+```typescript
+const watchlist = ['AAPL', 'TSLA', 'MSFT', 'NVDA'];
+
+for (const ticker of watchlist) {
+  const esg = await axion.esg.data(ticker);
+  
+  if (esg.data.controversyLevel >= 3) {
+    console.log(`⚠️ ${ticker} has high controversy level: ${esg.data.controversyLevel}`);
+    console.log(`Overall ESG score: ${esg.data.overall}`);
+  } else if (esg.data.controversyLevel === 0) {
+    console.log(`✓ ${ticker} has no significant controversies`);
+  }
+}
+```
+
+### Governance Quality Analysis
+
+Evaluate companies based on governance metrics:
+
+```typescript
+interface GovernanceReport {
+  ticker: string;
+  governanceScore: number;
+  boardIndependence?: number;
+  overallESG: number;
+  rating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+}
+
+async function analyzeGovernance(ticker: string): Promise<GovernanceReport> {
+  const esg = await axion.esg.data(ticker);
+  
+  let rating: GovernanceReport['rating'];
+  if (esg.data.governance >= 80) rating = 'Excellent';
+  else if (esg.data.governance >= 65) rating = 'Good';
+  else if (esg.data.governance >= 50) rating = 'Fair';
+  else rating = 'Poor';
+  
+  return {
+    ticker,
+    governanceScore: esg.data.governance,
+    boardIndependence: esg.data.metrics?.boardIndependence,
+    overallESG: esg.data.overall,
+    rating
+  };
+}
+
+const companies = ['AAPL', 'GOOGL', 'JPM', 'BAC'];
+const governanceReports = await Promise.all(
+  companies.map(analyzeGovernance)
+);
+
+governanceReports.forEach(report => {
+  console.log(`${report.ticker}: ${report.rating} (Score: ${report.governanceScore})`);
+});
+```
+
+### ESG Sector Comparison
+
+Compare ESG performance across sectors:
+
+```typescript
+const sectors = {
+  technology: ['AAPL', 'MSFT', 'GOOGL'],
+  energy: ['XOM', 'CVX', 'NEE'],
+  finance: ['JPM', 'BAC', 'GS']
+};
+
+const sectorESG = {};
+
+for (const [sector, tickers] of Object.entries(sectors)) {
+  const scores = await Promise.all(
+    tickers.map(async ticker => {
+      const esg = await axion.esg.data(ticker);
+      return esg.data.overall;
+    })
+  );
+  
+  const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+  sectorESG[sector] = {
+    average: Math.round(average),
+    companies: tickers.length
+  };
+}
+
+console.log('ESG by Sector:', sectorESG);
+```
+
+### Sustainable Portfolio Builder
+
+Build a balanced portfolio with ESG considerations:
+
+```typescript
+interface PortfolioCandidate {
+  ticker: string;
+  esgScore: number;
+  environmental: number;
+  social: number;
+  governance: number;
+  controversyLevel: number;
+}
+
+async function buildSustainablePortfolio(
+  candidates: string[],
+  minESG: number = 70,
+  maxControversy: number = 2
+): Promise<PortfolioCandidate[]> {
+  const evaluated: PortfolioCandidate[] = [];
+  
+  for (const ticker of candidates) {
+    const esg = await axion.esg.data(ticker);
+    
+    evaluated.push({
+      ticker,
+      esgScore: esg.data.overall,
+      environmental: esg.data.environmental,
+      social: esg.data.social,
+      governance: esg.data.governance,
+      controversyLevel: esg.data.controversyLevel
+    });
+  }
+  
+  // Filter based on criteria
+  const qualified = evaluated.filter(stock =>
+    stock.esgScore >= minESG &&
+    stock.controversyLevel <= maxControversy
+  );
+  
+  // Sort by ESG score
+  return qualified.sort((a, b) => b.esgScore - a.esgScore);
+}
+
+const universe = [
+  'AAPL', 'MSFT', 'GOOGL', 'TSLA', 'JPM',
+  'BAC', 'NEE', 'DIS', 'NKE', 'PG'
+];
+
+const portfolio = await buildSustainablePortfolio(universe, 75, 1);
+
+console.log('Sustainable Portfolio:');
+portfolio.forEach(stock => {
+  console.log(`${stock.ticker}: ESG ${stock.esgScore} (E:${stock.environmental} S:${stock.social} G:${stock.governance})`);
+});
+```

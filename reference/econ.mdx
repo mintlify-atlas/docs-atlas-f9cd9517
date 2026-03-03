@@ -1,0 +1,83 @@
+---
+title: EconAPI
+description: Economic data and calendar events
+---
+
+## search()
+
+```typescript
+search(query: string): Promise<ApiResponse>
+```
+
+Search for economic datasets.
+
+<ParamField path="query" type="string" required>
+  Search query string
+</ParamField>
+
+### Example
+
+```typescript
+const results = await client.econ.search('GDP');
+```
+
+## dataset()
+
+```typescript
+dataset(seriesId: string): Promise<ApiResponse>
+```
+
+Get data for a specific economic series.
+
+<ParamField path="seriesId" type="string" required>
+  Economic series identifier
+</ParamField>
+
+### Example
+
+```typescript
+const data = await client.econ.dataset('GDPC1');
+```
+
+## calendar()
+
+```typescript
+calendar(params?: { from?: string, to?: string, country?: string, minImportance?: number, currency?: string, category?: string }): Promise<ApiResponse>
+```
+
+Get economic calendar events.
+
+<ParamField path="params.from" type="string" optional>
+  Start date for calendar events
+</ParamField>
+
+<ParamField path="params.to" type="string" optional>
+  End date for calendar events
+</ParamField>
+
+<ParamField path="params.country" type="string" optional>
+  Filter by country code
+</ParamField>
+
+<ParamField path="params.minImportance" type="number" optional>
+  Minimum importance level (1-3)
+</ParamField>
+
+<ParamField path="params.currency" type="string" optional>
+  Filter by currency
+</ParamField>
+
+<ParamField path="params.category" type="string" optional>
+  Filter by event category
+</ParamField>
+
+### Example
+
+```typescript
+const events = await client.econ.calendar({
+  from: '2024-01-01',
+  to: '2024-12-31',
+  country: 'US',
+  minImportance: 2
+});
+```

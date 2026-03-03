@@ -1,0 +1,112 @@
+---
+title: FilingsAPI
+description: SEC filings and regulatory documents
+---
+
+## filings()
+
+```typescript
+filings(ticker: string, params?: { limit?: number, form?: string }): Promise<ApiResponse>
+```
+
+Get recent filings for a company.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="params.limit" type="number" optional>
+  Maximum number of filings to return
+</ParamField>
+
+<ParamField path="params.form" type="string" optional>
+  Filter by form type (e.g., "10-K", "10-Q")
+</ParamField>
+
+### Example
+
+```typescript
+const filings = await client.filings.filings('AAPL', { limit: 10, form: '10-K' });
+```
+
+## forms()
+
+```typescript
+forms(ticker: string, formType: string, params?: { year?: string, quarter?: string, limit?: number }): Promise<ApiResponse>
+```
+
+Get specific form type filings.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+<ParamField path="formType" type="string" required>
+  SEC form type (e.g., "10-K", "10-Q", "8-K")
+</ParamField>
+
+<ParamField path="params.year" type="string" optional>
+  Filter by year
+</ParamField>
+
+<ParamField path="params.quarter" type="string" optional>
+  Filter by quarter
+</ParamField>
+
+<ParamField path="params.limit" type="number" optional>
+  Maximum number of results
+</ParamField>
+
+### Example
+
+```typescript
+const forms = await client.filings.forms('AAPL', '10-K', { year: '2024' });
+```
+
+## descForms()
+
+```typescript
+descForms(): Promise<ApiResponse>
+```
+
+List available form types and their descriptions.
+
+### Example
+
+```typescript
+const formTypes = await client.filings.descForms();
+```
+
+## search()
+
+```typescript
+search(params: { year: string, quarter: string, form?: string, ticker?: string }): Promise<ApiResponse>
+```
+
+Search filings by year and quarter.
+
+<ParamField path="params.year" type="string" required>
+  Year to search
+</ParamField>
+
+<ParamField path="params.quarter" type="string" required>
+  Quarter to search
+</ParamField>
+
+<ParamField path="params.form" type="string" optional>
+  Filter by form type
+</ParamField>
+
+<ParamField path="params.ticker" type="string" optional>
+  Filter by ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const results = await client.filings.search({
+  year: '2024',
+  quarter: 'Q1',
+  form: '10-Q'
+});
+```

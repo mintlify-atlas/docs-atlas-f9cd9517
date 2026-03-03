@@ -1,0 +1,102 @@
+---
+title: Axion Client
+description: Main client class for the Axion SDK
+---
+
+## Constructor
+
+```typescript
+new Axion(apiKey?: string)
+```
+
+Creates a new Axion client instance.
+
+<ParamField path="apiKey" type="string" optional>
+  Your Axion API key. Required for authenticated endpoints.
+</ParamField>
+
+## Properties
+
+The Axion client provides access to all API modules:
+
+<ResponseField name="stocks" type="StocksAPI">
+  Stock market data and prices
+</ResponseField>
+
+<ResponseField name="crypto" type="CryptoAPI">
+  Cryptocurrency data and prices
+</ResponseField>
+
+<ResponseField name="forex" type="ForexAPI">
+  Foreign exchange data and prices
+</ResponseField>
+
+<ResponseField name="futures" type="FuturesAPI">
+  Futures contracts data and prices
+</ResponseField>
+
+<ResponseField name="indices" type="IndicesAPI">
+  Market indices data and prices
+</ResponseField>
+
+<ResponseField name="etfs" type="ETFAPI">
+  ETF information and holdings
+</ResponseField>
+
+<ResponseField name="profiles" type="ProfilesAPI">
+  Company profiles and statistics
+</ResponseField>
+
+<ResponseField name="financials" type="FinancialsAPI">
+  Financial statements and metrics
+</ResponseField>
+
+<ResponseField name="earnings" type="EarningsAPI">
+  Earnings data and reports
+</ResponseField>
+
+<ResponseField name="filings" type="FilingsAPI">
+  SEC filings and forms
+</ResponseField>
+
+<ResponseField name="insiders" type="InsidersAPI">
+  Insider trading and ownership
+</ResponseField>
+
+<ResponseField name="news" type="NewsAPI">
+  Financial news articles
+</ResponseField>
+
+<ResponseField name="sentiment" type="SentimentAPI">
+  Market sentiment analysis
+</ResponseField>
+
+<ResponseField name="esg" type="ESGAPI">
+  ESG (Environmental, Social, Governance) data
+</ResponseField>
+
+<ResponseField name="credit" type="CreditAPI">
+  Credit ratings and data
+</ResponseField>
+
+<ResponseField name="supplyChain" type="SupplyChainAPI">
+  Supply chain relationships
+</ResponseField>
+
+<ResponseField name="webTraffic" type="WebTrafficAPI">
+  Website traffic analytics
+</ResponseField>
+
+<ResponseField name="econ" type="EconAPI">
+  Economic data and calendar
+</ResponseField>
+
+## Example
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const client = new Axion('your-api-key');
+
+const prices = await client.stocks.prices('AAPL');
+```

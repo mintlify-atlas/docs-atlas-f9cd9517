@@ -1,0 +1,400 @@
+---
+title: Web Traffic API
+description: Access web traffic data and analytics for company websites
+---
+
+# Web Traffic API
+
+The Web Traffic API provides insights into website traffic patterns for publicly traded companies. Use this alternative data source to gauge customer engagement, brand strength, and potential revenue trends before they appear in financial reports.
+
+## Methods
+
+### traffic()
+
+Retrieve web traffic data for a company's website.
+
+```typescript
+const axion = new Axion('your-api-key');
+const traffic = await axion.webTraffic.traffic('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol (e.g., 'AAPL', 'AMZN', 'SHOP')
+</ParamField>
+
+**Returns:** `Promise<ApiResponse>`
+
+Web traffic metrics including:
+- Total visits
+- Unique visitors
+- Page views
+- Bounce rate
+- Average session duration
+- Traffic sources breakdown
+- Geographic distribution
+- Trending metrics (MoM, YoY growth)
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "ticker": "AAPL",
+    "domain": "apple.com",
+    "period": "2026-02",
+    "metrics": {
+      "totalVisits": 145000000,
+      "uniqueVisitors": 98000000,
+      "pageViews": 520000000,
+      "bounceRate": 42.3,
+      "avgSessionDuration": 285,
+      "pagesPerVisit": 3.6
+    },
+    "growth": {
+      "visitsMonthOverMonth": 5.2,
+      "visitsYearOverYear": 12.8
+    },
+    "sources": {
+      "direct": 45.2,
+      "search": 32.1,
+      "social": 12.4,
+      "referral": 8.1,
+      "email": 2.2
+    },
+    "geography": {
+      "US": 42.5,
+      "CN": 18.3,
+      "GB": 6.2,
+      "DE": 4.8,
+      "JP": 4.1,
+      "other": 24.1
+    }
+  }
+}
+```
+
+## Use Cases
+
+### E-commerce Revenue Predictor
+
+Use web traffic to predict e-commerce revenue trends:
+
+```typescript
+const axion = new Axion('your-api-key');
+
+interface TrafficInsight {
+  ticker: string;
+  domain: string;
+  visits: number;
+  growthMoM: number;
+  growthYoY: number;
+  signal: 'bullish' | 'bearish' | 'neutral';
+}
+
+async function analyzeEcommerceTraffic(
+  ticker: string
+): Promise<TrafficInsight> {
+  const traffic = await axion.webTraffic.traffic(ticker);
+  
+  const { totalVisits } = traffic.data.metrics;
+  const { visitsMonthOverMonth, visitsYearOverYear } = traffic.data.growth;
+  
+  let signal: 'bullish' | 'bearish' | 'neutral';
+  
+  if (visitsMonthOverMonth > 5 && visitsYearOverYear > 10) {
+    signal = 'bullish';
+  } else if (visitsMonthOverMonth < -5 || visitsYearOverYear < 0) {
+    signal = 'bearish';
+  } else {
+    signal = 'neutral';
+  }
+  
+  return {
+    ticker,
+    domain: traffic.data.domain,
+    visits: totalVisits,
+    growthMoM: visitsMonthOverMonth,
+    growthYoY: visitsYearOverYear,
+    signal
+  };
+}
+
+const ecommerceStocks = ['AMZN', 'SHOP', 'EBAY', 'ETSY'];
+
+for (const ticker of ecommerceStocks) {
+  const insight = await analyzeEcommerceTraffic(ticker);
+  console.log(`${insight.ticker}: ${insight.signal.toUpperCase()}`);
+  console.log(`  Visits: ${(insight.visits / 1000000).toFixed(1)}M`);
+  console.log(`  MoM: ${insight.growthMoM > 0 ? '+' : ''}${insight.growthMoM}%`);
+  console.log(`  YoY: ${insight.growthYoY > 0 ? '+' : ''}${insight.growthYoY}%`);
+}
+```
+
+### Traffic Quality Assessment
+
+Evaluate traffic quality and engagement:
+
+```typescript
+interface QualityMetrics {
+  ticker: string;
+  qualityScore: number;
+  engagementLevel: 'High' | 'Medium' | 'Low';
+  bounceRate: number;
+  sessionDuration: number;
+  pagesPerVisit: number;
+}
+
+async function assessTrafficQuality(
+  ticker: string
+): Promise<QualityMetrics> {
+  const traffic = await axion.webTraffic.traffic(ticker);
+  const { bounceRate, avgSessionDuration, pagesPerVisit } = traffic.data.metrics;
+  
+  // Calculate quality score (0-100)
+  const bounceScore = Math.max(0, 100 - bounceRate);
+  const durationScore = Math.min(100, (avgSessionDuration / 300) * 100);
+  const pagesScore = Math.min(100, (pagesPerVisit / 5) * 100);
+  
+  const qualityScore = Math.round(
+    (bounceScore * 0.3) + (durationScore * 0.4) + (pagesScore * 0.3)
+  );
+  
+  const engagementLevel = qualityScore > 70 ? 'High' :
+                          qualityScore > 50 ? 'Medium' : 'Low';
+  
+  return {
+    ticker,
+    qualityScore,
+    engagementLevel,
+    bounceRate,
+    sessionDuration: avgSessionDuration,
+    pagesPerVisit
+  };
+}
+
+const quality = await assessTrafficQuality('AAPL');
+console.log(`Traffic Quality for ${quality.ticker}:`);
+console.log(`  Score: ${quality.qualityScore}/100`);
+console.log(`  Engagement: ${quality.engagementLevel}`);
+console.log(`  Bounce Rate: ${quality.bounceRate}%`);
+console.log(`  Avg Session: ${quality.sessionDuration}s`);
+```
+
+### Traffic Source Diversification
+
+Analyze traffic source diversity for risk assessment:
+
+```typescript
+interface SourceDiversification {
+  ticker: string;
+  dominantSource: string;
+  dominantPercentage: number;
+  diversificationScore: number;
+  risk: 'Low' | 'Medium' | 'High';
+}
+
+async function analyzeSourceDiversification(
+  ticker: string
+): Promise<SourceDiversification> {
+  const traffic = await axion.webTraffic.traffic(ticker);
+  const sources = traffic.data.sources;
+  
+  // Find dominant source
+  const [dominantSource, dominantPercentage] = Object.entries(sources)
+    .sort(([, a], [, b]) => b - a)[0];
+  
+  // Calculate diversification (higher = more diversified)
+  const sourceValues = Object.values(sources);
+  const diversificationScore = Math.round(
+    (1 - (dominantPercentage / 100)) * 100
+  );
+  
+  const risk = dominantPercentage > 70 ? 'High' :
+               dominantPercentage > 50 ? 'Medium' : 'Low';
+  
+  return {
+    ticker,
+    dominantSource,
+    dominantPercentage,
+    diversificationScore,
+    risk
+  };
+}
+
+const diversification = await analyzeSourceDiversification('SHOP');
+console.log(`Traffic Source Analysis for ${diversification.ticker}:`);
+console.log(`  Dominant Source: ${diversification.dominantSource} (${diversification.dominantPercentage}%)`);
+console.log(`  Diversification: ${diversification.diversificationScore}/100`);
+console.log(`  Risk Level: ${diversification.risk}`);
+```
+
+### Geographic Expansion Tracker
+
+Track international market penetration:
+
+```typescript
+interface GeographicInsights {
+  ticker: string;
+  topMarkets: Array<{
+    country: string;
+    percentage: number;
+  }>;
+  internationalPercentage: number;
+  diversification: 'Global' | 'Regional' | 'Domestic';
+}
+
+async function analyzeGeographicReach(
+  ticker: string
+): Promise<GeographicInsights> {
+  const traffic = await axion.webTraffic.traffic(ticker);
+  const geography = traffic.data.geography;
+  
+  // Get top markets
+  const topMarkets = Object.entries(geography)
+    .filter(([country]) => country !== 'other')
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([country, percentage]) => ({ country, percentage }));
+  
+  // Calculate international percentage (non-US)
+  const internationalPercentage = 100 - (geography.US || 0);
+  
+  const diversification = internationalPercentage > 60 ? 'Global' :
+                          internationalPercentage > 30 ? 'Regional' : 'Domestic';
+  
+  return {
+    ticker,
+    topMarkets,
+    internationalPercentage,
+    diversification
+  };
+}
+
+const geoInsights = await analyzeGeographicReach('AAPL');
+console.log(`Geographic Reach for ${geoInsights.ticker}:`);
+console.log(`  Classification: ${geoInsights.diversification}`);
+console.log(`  International: ${geoInsights.internationalPercentage}%`);
+console.log('  Top Markets:');
+geoInsights.topMarkets.forEach(market => {
+  console.log(`    ${market.country}: ${market.percentage}%`);
+});
+```
+
+### Competitive Traffic Comparison
+
+Compare web traffic across competitors:
+
+```typescript
+interface CompetitiveComparison {
+  companies: Array<{
+    ticker: string;
+    domain: string;
+    visits: number;
+    marketShare: number;
+    growth: number;
+  }>;
+  totalMarketVisits: number;
+}
+
+async function compareCompetitorTraffic(
+  tickers: string[]
+): Promise<CompetitiveComparison> {
+  const trafficData = await Promise.all(
+    tickers.map(ticker => axion.webTraffic.traffic(ticker))
+  );
+  
+  const totalVisits = trafficData.reduce(
+    (sum, data) => sum + data.data.metrics.totalVisits,
+    0
+  );
+  
+  const companies = trafficData.map((data, index) => ({
+    ticker: tickers[index],
+    domain: data.data.domain,
+    visits: data.data.metrics.totalVisits,
+    marketShare: (data.data.metrics.totalVisits / totalVisits) * 100,
+    growth: data.data.growth.visitsYearOverYear
+  }));
+  
+  // Sort by visits
+  companies.sort((a, b) => b.visits - a.visits);
+  
+  return {
+    companies,
+    totalMarketVisits: totalVisits
+  };
+}
+
+const competitors = ['AMZN', 'SHOP', 'WMT', 'TGT'];
+const comparison = await compareCompetitorTraffic(competitors);
+
+console.log('E-commerce Traffic Comparison:');
+console.log(`Total Market Visits: ${(comparison.totalMarketVisits / 1000000).toFixed(0)}M`);
+console.log('\nMarket Share:');
+comparison.companies.forEach((company, index) => {
+  console.log(`${index + 1}. ${company.ticker} (${company.domain})`);
+  console.log(`   Visits: ${(company.visits / 1000000).toFixed(1)}M`);
+  console.log(`   Share: ${company.marketShare.toFixed(1)}%`);
+  console.log(`   YoY Growth: ${company.growth > 0 ? '+' : ''}${company.growth}%`);
+});
+```
+
+### Traffic Momentum Indicator
+
+Create a momentum indicator based on traffic trends:
+
+```typescript
+interface MomentumSignal {
+  ticker: string;
+  momentum: 'Strong Positive' | 'Positive' | 'Neutral' | 'Negative' | 'Strong Negative';
+  score: number;
+  visitsGrowthMoM: number;
+  visitsGrowthYoY: number;
+  engagementTrend: 'Improving' | 'Stable' | 'Declining';
+}
+
+async function calculateTrafficMomentum(
+  ticker: string
+): Promise<MomentumSignal> {
+  const traffic = await axion.webTraffic.traffic(ticker);
+  const { visitsMonthOverMonth, visitsYearOverYear } = traffic.data.growth;
+  const { bounceRate, avgSessionDuration } = traffic.data.metrics;
+  
+  // Calculate momentum score
+  const growthScore = (visitsMonthOverMonth * 2) + visitsYearOverYear;
+  const engagementScore = (avgSessionDuration / 60) - bounceRate;
+  const score = Math.round((growthScore + engagementScore) / 2);
+  
+  let momentum: MomentumSignal['momentum'];
+  if (score > 15) momentum = 'Strong Positive';
+  else if (score > 5) momentum = 'Positive';
+  else if (score > -5) momentum = 'Neutral';
+  else if (score > -15) momentum = 'Negative';
+  else momentum = 'Strong Negative';
+  
+  const engagementTrend = bounceRate < 50 && avgSessionDuration > 180 ? 'Improving' :
+                          bounceRate > 60 || avgSessionDuration < 120 ? 'Declining' :
+                          'Stable';
+  
+  return {
+    ticker,
+    momentum,
+    score,
+    visitsGrowthMoM: visitsMonthOverMonth,
+    visitsGrowthYoY: visitsYearOverYear,
+    engagementTrend
+  };
+}
+
+const watchlist = ['AMZN', 'ETSY', 'CHWY', 'W'];
+
+console.log('Traffic Momentum Analysis:');
+for (const ticker of watchlist) {
+  const signal = await calculateTrafficMomentum(ticker);
+  console.log(`\n${signal.ticker}: ${signal.momentum}`);
+  console.log(`  Score: ${signal.score}`);
+  console.log(`  MoM: ${signal.visitsGrowthMoM > 0 ? '+' : ''}${signal.visitsGrowthMoM}%`);
+  console.log(`  YoY: ${signal.visitsGrowthYoY > 0 ? '+' : ''}${signal.visitsGrowthYoY}%`);
+  console.log(`  Engagement: ${signal.engagementTrend}`);
+}
+```

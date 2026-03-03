@@ -1,0 +1,76 @@
+---
+title: SentimentAPI
+description: Market sentiment and social analytics
+---
+
+## all()
+
+```typescript
+all(ticker: string): Promise<ApiResponse>
+```
+
+Get all sentiment data for a ticker.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const sentiment = await client.sentiment.all('AAPL');
+```
+
+## social()
+
+```typescript
+social(ticker: string): Promise<ApiResponse>
+```
+
+Get social media sentiment.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const socialSentiment = await client.sentiment.social('AAPL');
+```
+
+## news()
+
+```typescript
+news(ticker: string): Promise<ApiResponse>
+```
+
+Get news sentiment analysis.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const newsSentiment = await client.sentiment.news('AAPL');
+```
+
+## analyst()
+
+```typescript
+analyst(ticker: string): Promise<ApiResponse>
+```
+
+Get analyst sentiment.
+
+<ParamField path="ticker" type="string" required>
+  Stock ticker symbol
+</ParamField>
+
+### Example
+
+```typescript
+const analystSentiment = await client.sentiment.analyst('AAPL');
+```

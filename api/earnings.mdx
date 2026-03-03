@@ -1,0 +1,141 @@
+---
+title: 'Earnings API'
+description: 'Access earnings history, trends, and reports'
+---
+
+The Earnings API provides access to historical earnings data, earnings trends, index trends, and detailed earnings reports.
+
+## Get Earnings History
+
+Retrieve historical earnings data for a company.
+
+```typescript
+const history = await axion.earnings.history('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Historical earnings data including EPS and revenue for past quarters
+</ResponseField>
+
+## Get Earnings Trend
+
+Retrieve earnings trend data showing estimates and actuals.
+
+```typescript
+const trend = await axion.earnings.trend('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Earnings trend data including analyst estimates and historical performance
+</ResponseField>
+
+## Get Earnings Index
+
+Retrieve earnings index trend data.
+
+```typescript
+const index = await axion.earnings.index('AAPL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Earnings index trend data
+</ResponseField>
+
+## Get Earnings Report
+
+Retrieve a detailed earnings report for a specific quarter.
+
+```typescript
+const report = await axion.earnings.report('AAPL', {
+  year: '2024',
+  quarter: 'Q1'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The stock ticker symbol
+</ParamField>
+
+<ParamField query="year" type="string" required>
+  The year of the earnings report (e.g., '2024')
+</ParamField>
+
+<ParamField query="quarter" type="string" required>
+  The quarter of the earnings report (e.g., 'Q1', 'Q2', 'Q3', 'Q4')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed earnings report for the specified quarter including revenue, EPS, and guidance
+</ResponseField>
+
+## Example Usage
+
+Here's a complete example showing how to analyze earnings data:
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function analyzeEarnings(ticker: string) {
+  try {
+    // Get historical earnings
+    const history = await axion.earnings.history(ticker);
+    console.log('Earnings History:', history.data);
+    
+    // Get earnings trend and estimates
+    const trend = await axion.earnings.trend(ticker);
+    console.log('Analyst Estimates:', trend.data);
+    
+    // Get specific quarterly report
+    const report = await axion.earnings.report(ticker, {
+      year: '2024',
+      quarter: 'Q1'
+    });
+    console.log('Q1 2024 Report:', report.data);
+    
+    // Get earnings index
+    const index = await axion.earnings.index(ticker);
+    console.log('Earnings Index:', index.data);
+    
+  } catch (error) {
+    console.error('Error fetching earnings data:', error);
+  }
+}
+
+analyzeEarnings('AAPL');
+```
+
+## Tracking Multiple Quarters
+
+You can track earnings across multiple quarters:
+
+```typescript
+async function trackQuarterlyEarnings(ticker: string) {
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+  const year = '2024';
+  
+  for (const quarter of quarters) {
+    try {
+      const report = await axion.earnings.report(ticker, { year, quarter });
+      console.log(`${quarter} ${year}:`, report.data);
+    } catch (error) {
+      console.error(`Error fetching ${quarter} ${year}:`, error);
+    }
+  }
+}
+
+trackQuarterlyEarnings('AAPL');
+```

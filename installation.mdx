@@ -1,0 +1,209 @@
+---
+title: 'Installation'
+description: 'Install the Axion SDK in your Node.js project using npm, yarn, or pnpm'
+---
+
+## Prerequisites
+
+Before installing the Axion SDK, ensure you have the following:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Node.js version 14.0 or higher
+  </Card>
+  <Card title="Package Manager" icon="box">
+    npm, yarn, or pnpm installed
+  </Card>
+</CardGroup>
+
+## Install the Package
+
+Choose your preferred package manager to install the Axion SDK:
+
+<CodeGroup>
+
+```bash npm
+npm install @axionquant/sdk
+```
+
+```bash yarn
+yarn add @axionquant/sdk
+```
+
+```bash pnpm
+pnpm add @axionquant/sdk
+```
+
+</CodeGroup>
+
+## Dependencies
+
+The Axion SDK has minimal dependencies for a lightweight installation:
+
+- **axios** (^1.0.0) - HTTP client for making API requests
+
+These dependencies will be automatically installed when you install the SDK.
+
+## Verify Installation
+
+After installation, verify that the SDK is properly installed by importing it in your project:
+
+<CodeGroup>
+
+```javascript CommonJS
+const { Axion } = require('@axionquant/sdk');
+
+console.log('Axion SDK installed successfully!');
+```
+
+```javascript ES Modules
+import { Axion } from '@axionquant/sdk';
+
+console.log('Axion SDK installed successfully!');
+```
+
+```typescript TypeScript
+import { Axion } from '@axionquant/sdk';
+
+const client: Axion = new Axion();
+console.log('Axion SDK installed successfully!');
+```
+
+</CodeGroup>
+
+## TypeScript Support
+
+The Axion SDK is built with TypeScript and includes type definitions out of the box. No additional @types packages are needed.
+
+<Note>
+  The SDK exports TypeScript declaration files (*.d.ts) automatically, providing full IntelliSense and type checking in your IDE.
+</Note>
+
+### TypeScript Configuration
+
+Ensure your `tsconfig.json` is configured to support the SDK:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+}
+```
+
+## Package Information
+
+Here are the key details about the Axion SDK package:
+
+<ResponseField name="Package Name" type="string">
+  @axionquant/sdk
+</ResponseField>
+
+<ResponseField name="Current Version" type="string">
+  1.1.2
+</ResponseField>
+
+<ResponseField name="License" type="string">
+  MIT
+</ResponseField>
+
+<ResponseField name="Repository" type="string">
+  https://github.com/axionquant/js-sdk
+</ResponseField>
+
+## Development Dependencies
+
+If you're contributing to the SDK or need to build from source, you'll also need:
+
+- **@types/node** (^20.0.0) - Node.js type definitions
+- **typescript** (^5.0.0) - TypeScript compiler
+
+## Build from Source
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/axionquant/js-sdk.git
+    cd js-sdk
+    ```
+  </Step>
+  
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  
+  <Step title="Build the project">
+    ```bash
+    npm run build
+    ```
+    
+    This compiles the TypeScript source code to JavaScript in the `dist/` directory.
+  </Step>
+  
+  <Step title="Link locally (optional)">
+    ```bash
+    npm link
+    ```
+    
+    This allows you to use your local build in other projects.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Module not found error">
+    If you encounter a "Cannot find module '@axionquant/sdk'" error:
+    
+    1. Ensure the package is installed in your `node_modules` directory
+    2. Check that your `package.json` lists the dependency
+    3. Try deleting `node_modules` and reinstalling:
+    
+    ```bash
+    rm -rf node_modules package-lock.json
+    npm install
+    ```
+  </Accordion>
+  
+  <Accordion title="TypeScript errors">
+    If you're seeing TypeScript compilation errors:
+    
+    1. Verify your TypeScript version is 5.0 or higher: `tsc --version`
+    2. Ensure `esModuleInterop` is enabled in your `tsconfig.json`
+    3. Try updating the SDK to the latest version
+  </Accordion>
+  
+  <Accordion title="Axios version conflicts">
+    If you have axios version conflicts with other packages:
+    
+    1. Check your `package.json` for duplicate axios versions
+    2. Use npm's peer dependency resolution or yarn's resolutions field
+    3. Consider using npm 7+ which handles peer dependencies automatically
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Build your first application with Axion SDK
+  </Card>
+  <Card
+    title="Authentication Setup"
+    icon="key"
+    href="/authentication"
+  >
+    Configure your API key for authenticated requests
+  </Card>
+</CardGroup>

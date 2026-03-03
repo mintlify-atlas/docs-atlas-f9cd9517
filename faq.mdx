@@ -1,0 +1,263 @@
+---
+title: 'FAQ'
+description: 'Frequently asked questions about the Axion SDK'
+---
+
+## General Questions
+
+<AccordionGroup>
+  <Accordion title="What is the Axion SDK?">
+    The Axion SDK is a TypeScript/JavaScript library that provides programmatic access to the Axion API. It offers a comprehensive set of endpoints for financial data including stocks, crypto, forex, futures, indices, ETFs, economic data, news, sentiment analysis, and more.
+  </Accordion>
+
+  <Accordion title="Which JavaScript/TypeScript versions are supported?">
+    The SDK is built with TypeScript and supports Node.js 14+ and all modern browsers. It includes TypeScript type definitions for enhanced developer experience with autocomplete and type checking.
+  </Accordion>
+
+  <Accordion title="Is the SDK open source?">
+    Check the package repository for licensing information. The SDK is designed to work with the Axion API service, which requires an API key for access.
+  </Accordion>
+</AccordionGroup>
+
+## Authentication
+
+<AccordionGroup>
+  <Accordion title="Do I need an API key to use the SDK?">
+    Yes, most endpoints require authentication with an API key. Initialize the client with your API key:
+
+    ```typescript
+    const client = new Axion('your-api-key-here');
+    ```
+
+    Without an API key, you'll receive authentication errors when trying to access protected endpoints.
+  </Accordion>
+
+  <Accordion title="Where do I get an API key?">
+    API keys can be obtained from your Axion account dashboard. Sign up for an account on the Axion platform, then navigate to the API section to generate your key.
+  </Accordion>
+
+  <Accordion title="How do I keep my API key secure?">
+    Never hardcode your API key in your source code. Instead, use environment variables:
+
+    ```typescript
+    const client = new Axion(process.env.AXION_API_KEY);
+    ```
+
+    Store your API key in a `.env` file and add it to `.gitignore` to prevent accidental commits.
+  </Accordion>
+
+  <Accordion title="Can I use the same API key in multiple applications?">
+    Yes, you can use the same API key across multiple applications. However, all requests from that key will count toward your rate limit. For production environments with multiple services, consider using separate API keys for better tracking and isolation.
+  </Accordion>
+</AccordionGroup>
+
+## Rate Limits and Usage
+
+<AccordionGroup>
+  <Accordion title="What are the rate limits?">
+    Rate limits vary depending on your subscription plan. When you exceed the rate limit, you'll receive an HTTP 429 (Too Many Requests) error. Check your plan details in the Axion dashboard for specific limits.
+  </Accordion>
+
+  <Accordion title="How do I handle rate limit errors?">
+    Implement retry logic with exponential backoff:
+
+    ```typescript
+    async function fetchWithRetry(fn, maxRetries = 3) {
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          return await fn();
+        } catch (error) {
+          if (error.message.includes('429') && i < maxRetries - 1) {
+            await new Promise(resolve => 
+              setTimeout(resolve, Math.pow(2, i) * 1000)
+            );
+            continue;
+          }
+          throw error;
+        }
+      }
+    }
+    ```
+
+    Alternatively, reduce your request frequency or upgrade to a higher-tier plan.
+  </Accordion>
+
+  <Accordion title="Can I increase my rate limits?">
+    Yes, you can upgrade to a higher-tier subscription plan for increased rate limits. Check the Axion pricing page for available plans and their respective limits.
+  </Accordion>
+</AccordionGroup>
+
+## Data Availability
+
+<AccordionGroup>
+  <Accordion title="What markets and exchanges are supported?">
+    The SDK supports data from multiple markets and exchanges globally. Use the `stocks.tickers()`, `forex.tickers()`, `crypto.tickers()`, and other ticker listing endpoints with filters to discover available data:
+
+    ```typescript
+    // Get stocks from a specific country
+    const usStocks = await client.stocks.tickers({ country: 'US' });
+
+    // Get stocks from a specific exchange
+    const nasdaqStocks = await client.stocks.tickers({ exchange: 'NASDAQ' });
+    ```
+  </Accordion>
+
+  <Accordion title="How far back does historical price data go?">
+    Historical data availability varies by asset and data provider. Use the `from` and `to` parameters when querying price data:
+
+    ```typescript
+    const prices = await client.stocks.prices('AAPL', {
+      from: '2020-01-01',
+      to: '2023-12-31'
+    });
+    ```
+
+    If data isn't available for your requested date range, the API will return what's available.
+  </Accordion>
+
+  <Accordion title="How often is data updated?">
+    Data update frequency varies by endpoint and data type:
+    - **Price data**: Updated in near real-time (delayed by exchange requirements)
+    - **News and sentiment**: Updated continuously as new data becomes available
+    - **Financial statements**: Updated quarterly after filings
+    - **Economic indicators**: Updated according to official release schedules
+
+    Check individual endpoint documentation for specific update frequencies.
+  </Accordion>
+
+  <Accordion title="What do I do if a ticker isn't found?">
+    If you receive a 404 error for a ticker:
+    1. Verify the ticker symbol is correct and properly formatted
+    2. Use the search endpoints to find the correct ticker:
+       ```typescript
+       const results = await client.credit.search('Apple');
+       ```
+    3. Check if the asset is supported by listing available tickers:
+       ```typescript
+       const tickers = await client.stocks.tickers();
+       ```
+    4. Some assets may not be available in all data categories
+  </Accordion>
+</AccordionGroup>
+
+## Error Handling
+
+<AccordionGroup>
+  <Accordion title="Why am I getting 'Authentication required' errors?">
+    This error occurs when:
+    - You didn't provide an API key when initializing the client
+    - You're trying to access a protected endpoint
+
+    **Solution:** Initialize the client with your API key:
+    ```typescript
+    const client = new Axion('your-api-key-here');
+    ```
+  </Accordion>
+
+  <Accordion title="Why am I getting 401 Unauthorized errors?">
+    A 401 error means your API key is invalid, expired, or revoked. Check that:
+    - Your API key is correctly copied (no extra spaces or characters)
+    - Your API key hasn't been revoked in the dashboard
+    - Your account is in good standing
+
+    If the issue persists, generate a new API key from your dashboard.
+  </Accordion>
+
+  <Accordion title="Why am I getting connection errors?">
+    Connection errors (`Connection Error: Could not connect to https://api.axionquant.com`) typically indicate:
+    - Network connectivity issues
+    - Firewall or proxy blocking the API
+    - API service downtime (rare)
+
+    **Troubleshooting steps:**
+    1. Check your internet connection
+    2. Verify firewall/proxy settings allow connections to api.axionquant.com
+    3. Check the API status page for any incidents
+    4. Try accessing the API from a different network
+  </Accordion>
+
+  <Accordion title="How should I handle errors in production?">
+    Always wrap API calls in try-catch blocks and implement appropriate error handling:
+
+    ```typescript
+    try {
+      const data = await client.stocks.ticker('AAPL');
+      // Process data
+    } catch (error) {
+      // Log error for debugging
+      console.error('API Error:', error.message);
+      
+      // Return appropriate response to user
+      if (error.message.includes('404')) {
+        return { error: 'Ticker not found' };
+      } else if (error.message.includes('429')) {
+        return { error: 'Rate limit exceeded. Please try again later.' };
+      } else {
+        return { error: 'Service temporarily unavailable' };
+      }
+    }
+    ```
+
+    See the [Error Handling](/error-handling) guide for comprehensive examples.
+  </Accordion>
+</AccordionGroup>
+
+## Performance and Optimization
+
+<AccordionGroup>
+  <Accordion title="How can I optimize API usage to reduce costs?">
+    - **Cache responses**: Store frequently accessed data locally with appropriate TTL
+    - **Batch requests**: Fetch multiple related data points in parallel when possible
+    - **Use appropriate time frames**: Request only the data granularity you need
+    - **Filter results**: Use query parameters to limit response size
+    - **Implement pagination**: For large datasets, fetch data in chunks
+  </Accordion>
+
+  <Accordion title="Can I make parallel API requests?">
+    Yes, the SDK supports parallel requests using `Promise.all()`:
+
+    ```typescript
+    const [profile, prices, sentiment] = await Promise.all([
+      client.profiles.profile('AAPL'),
+      client.stocks.prices('AAPL'),
+      client.sentiment.all('AAPL')
+    ]);
+    ```
+
+    Be mindful of your rate limits when making parallel requests.
+  </Accordion>
+
+  <Accordion title="Should I cache API responses?">
+    Yes, caching is recommended for data that doesn't change frequently:
+    - **Financial statements**: Cache for days or weeks
+    - **Company profiles**: Cache for hours or days
+    - **Price data**: Cache based on your use case (minutes for real-time, hours for historical)
+    - **News/sentiment**: Shorter cache times (minutes to hours)
+
+    Implement cache invalidation based on data update frequencies.
+  </Accordion>
+</AccordionGroup>
+
+## Support
+
+<AccordionGroup>
+  <Accordion title="Where can I get help if I'm stuck?">
+    - **Documentation**: Check this documentation for guides and API reference
+    - **Support**: Contact Axion support through your dashboard
+    - **Status Page**: Check the API status page for any ongoing incidents
+    - **Community**: Join the developer community (if available)
+  </Accordion>
+
+  <Accordion title="How do I report a bug or request a feature?">
+    Contact Axion support through your dashboard with:
+    - Detailed description of the issue or feature request
+    - Steps to reproduce (for bugs)
+    - Expected vs actual behavior
+    - SDK version and environment details
+    - Example code (if applicable)
+  </Accordion>
+
+  <Accordion title="Is there a changelog for SDK updates?">
+    Check the npm package page or the GitHub repository for release notes and changelog. Subscribe to updates to stay informed about new features, improvements, and breaking changes.
+  </Accordion>
+</AccordionGroup>

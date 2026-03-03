@@ -1,0 +1,259 @@
+---
+title: 'Cryptocurrency API'
+description: 'Access cryptocurrency market data including tickers, quotes, and historical prices'
+---
+
+## Overview
+
+The Crypto API provides real-time and historical data for cryptocurrencies, including Bitcoin, Ethereum, and thousands of altcoins.
+
+## Methods
+
+### tickers()
+
+Retrieve a list of available cryptocurrency tickers with optional filtering by type.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all cryptocurrency tickers
+const allCryptos = await axion.crypto.tickers();
+
+// Filter by type (e.g., 'coin', 'token')
+const coins = await axion.crypto.tickers({ type: 'coin' });
+```
+
+<ParamField path="type" type="string" optional>
+  Filter by cryptocurrency type (e.g., 'coin', 'token', 'stablecoin')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of cryptocurrency ticker objects
+  <ResponseField name="ticker" type="string">
+    Cryptocurrency ticker symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the cryptocurrency
+  </ResponseField>
+  <ResponseField name="type" type="string">
+    Type of cryptocurrency (coin, token, etc.)
+  </ResponseField>
+  <ResponseField name="blockchain" type="string">
+    Underlying blockchain network
+  </ResponseField>
+</ResponseField>
+
+### ticker()
+
+Get detailed information about a specific cryptocurrency.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get Bitcoin data
+const bitcoinData = await axion.crypto.ticker('BTC');
+
+// Get Ethereum data
+const ethereumData = await axion.crypto.ticker('ETH');
+
+// Get Solana data
+const solanaData = await axion.crypto.ticker('SOL');
+```
+
+<ParamField path="ticker" type="string" required>
+  The cryptocurrency ticker symbol (e.g., 'BTC', 'ETH', 'SOL')
+</ParamField>
+
+<ResponseField name="data" type="object">
+  Detailed cryptocurrency information
+  <ResponseField name="ticker" type="string">
+    Cryptocurrency ticker symbol
+  </ResponseField>
+  <ResponseField name="name" type="string">
+    Full name of the cryptocurrency
+  </ResponseField>
+  <ResponseField name="price" type="number">
+    Current price in USD
+  </ResponseField>
+  <ResponseField name="volume24h" type="number">
+    24-hour trading volume
+  </ResponseField>
+  <ResponseField name="marketCap" type="number">
+    Market capitalization
+  </ResponseField>
+  <ResponseField name="change24h" type="number">
+    24-hour price change
+  </ResponseField>
+  <ResponseField name="changePercent24h" type="number">
+    24-hour percentage change
+  </ResponseField>
+  <ResponseField name="circulatingSupply" type="number">
+    Circulating supply
+  </ResponseField>
+  <ResponseField name="totalSupply" type="number">
+    Total supply
+  </ResponseField>
+</ResponseField>
+
+### prices()
+
+Retrieve historical price data for a cryptocurrency with optional date range and time frame.
+
+```typescript
+const axion = new Axion('your-api-key');
+
+// Get all available historical prices
+const allPrices = await axion.crypto.prices('BTC');
+
+// Get prices for a specific date range
+const rangedPrices = await axion.crypto.prices('ETH', {
+  from: '2024-01-01',
+  to: '2024-12-31'
+});
+
+// Get hourly prices for the last week
+const hourlyPrices = await axion.crypto.prices('BTC', {
+  from: '2024-12-01',
+  to: '2024-12-07',
+  frame: 'hourly'
+});
+
+// Get daily prices for analysis
+const dailyPrices = await axion.crypto.prices('SOL', {
+  from: '2024-01-01',
+  to: '2024-12-31',
+  frame: 'daily'
+});
+```
+
+<ParamField path="ticker" type="string" required>
+  The cryptocurrency ticker symbol (e.g., 'BTC', 'ETH', 'SOL')
+</ParamField>
+
+<ParamField path="from" type="string" optional>
+  Start date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="to" type="string" optional>
+  End date in YYYY-MM-DD format
+</ParamField>
+
+<ParamField path="frame" type="string" optional>
+  Time frame for price data ('hourly', 'daily', 'weekly', 'monthly')
+</ParamField>
+
+<ResponseField name="data" type="array">
+  Array of historical price points
+  <ResponseField name="timestamp" type="string">
+    Timestamp of the price point
+  </ResponseField>
+  <ResponseField name="open" type="number">
+    Opening price
+  </ResponseField>
+  <ResponseField name="high" type="number">
+    Highest price
+  </ResponseField>
+  <ResponseField name="low" type="number">
+    Lowest price
+  </ResponseField>
+  <ResponseField name="close" type="number">
+    Closing price
+  </ResponseField>
+  <ResponseField name="volume" type="number">
+    Trading volume
+  </ResponseField>
+  <ResponseField name="marketCap" type="number">
+    Market cap at this timestamp
+  </ResponseField>
+</ResponseField>
+
+## Example: Crypto Portfolio Tracker
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+interface PortfolioHolding {
+  ticker: string;
+  amount: number;
+}
+
+async function trackCryptoPortfolio(holdings: PortfolioHolding[]) {
+  let totalValue = 0;
+  const portfolio = [];
+
+  for (const holding of holdings) {
+    const data = await axion.crypto.ticker(holding.ticker);
+    const value = data.data.price * holding.amount;
+    
+    totalValue += value;
+    
+    portfolio.push({
+      ticker: holding.ticker,
+      name: data.data.name,
+      amount: holding.amount,
+      currentPrice: data.data.price,
+      value: value,
+      change24h: data.data.changePercent24h
+    });
+  }
+
+  return {
+    totalValue,
+    holdings: portfolio
+  };
+}
+
+// Track a portfolio
+const myPortfolio = await trackCryptoPortfolio([
+  { ticker: 'BTC', amount: 0.5 },
+  { ticker: 'ETH', amount: 5.0 },
+  { ticker: 'SOL', amount: 100 }
+]);
+
+console.log(`Total Portfolio Value: $${myPortfolio.totalValue.toFixed(2)}`);
+myPortfolio.holdings.forEach(h => {
+  console.log(`${h.name}: $${h.value.toFixed(2)} (${h.change24h > 0 ? '+' : ''}${h.change24h.toFixed(2)}%)`);
+});
+```
+
+## Example: Price Alert System
+
+```typescript
+import { Axion } from 'axion-sdk';
+
+const axion = new Axion('your-api-key');
+
+async function checkPriceAlerts(ticker: string, targetPrice: number) {
+  const data = await axion.crypto.ticker(ticker);
+  const currentPrice = data.data.price;
+  
+  if (currentPrice >= targetPrice) {
+    console.log(`🚨 ALERT: ${ticker} has reached $${currentPrice}!`);
+    return true;
+  }
+  
+  console.log(`${ticker} current price: $${currentPrice} (Target: $${targetPrice})`);
+  return false;
+}
+
+// Check if Bitcoin reached $100,000
+await checkPriceAlerts('BTC', 100000);
+```
+
+## Error Handling
+
+```typescript
+try {
+  const data = await axion.crypto.ticker('INVALID');
+} catch (error) {
+  if (error.message.includes('HTTP Error 404')) {
+    console.error('Cryptocurrency not found');
+  } else if (error.message.includes('Connection Error')) {
+    console.error('Unable to connect to API');
+  } else {
+    console.error('An error occurred:', error.message);
+  }
+}
+```
