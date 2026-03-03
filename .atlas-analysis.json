@@ -1,0 +1,183 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Axion SDK",
+  "projectDescription": "JavaScript SDK for accessing comprehensive financial market data including stocks, crypto, forex, ETFs, and economic indicators",
+  "theme": "sequoia",
+  "primaryColor": "#1e40af",
+  "lightColor": "#3b82f6",
+  "darkColor": "#1e3a8a",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart",
+              "authentication"
+            ]
+          },
+          {
+            "group": "Market Data",
+            "pages": [
+              "api/stocks",
+              "api/crypto",
+              "api/forex",
+              "api/futures",
+              "api/indices",
+              "api/etfs"
+            ]
+          },
+          {
+            "group": "Company Data",
+            "pages": [
+              "api/profiles",
+              "api/financials",
+              "api/earnings",
+              "api/filings",
+              "api/insiders"
+            ]
+          },
+          {
+            "group": "Alternative Data",
+            "pages": [
+              "api/news",
+              "api/sentiment",
+              "api/esg",
+              "api/credit",
+              "api/supply-chain",
+              "api/web-traffic"
+            ]
+          },
+          {
+            "group": "Economic Data",
+            "pages": [
+              "api/econ"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/stock-analysis",
+              "examples/portfolio-tracking",
+              "examples/market-research"
+            ]
+          },
+          {
+            "group": "Support",
+            "pages": [
+              "error-handling",
+              "faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core",
+            "pages": [
+              "reference/client"
+            ]
+          },
+          {
+            "group": "Market Data APIs",
+            "pages": [
+              "reference/stocks",
+              "reference/crypto",
+              "reference/forex",
+              "reference/futures",
+              "reference/indices",
+              "reference/etfs"
+            ]
+          },
+          {
+            "group": "Company Data APIs",
+            "pages": [
+              "reference/profiles",
+              "reference/financials",
+              "reference/earnings",
+              "reference/filings",
+              "reference/insiders"
+            ]
+          },
+          {
+            "group": "Alternative Data APIs",
+            "pages": [
+              "reference/news",
+              "reference/sentiment",
+              "reference/esg",
+              "reference/credit",
+              "reference/supply-chain",
+              "reference/web-traffic"
+            ]
+          },
+          {
+            "group": "Economic Data APIs",
+            "pages": [
+              "reference/econ"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Access to stocks, crypto, forex, futures, indices, and ETF data",
+    "Company financials, earnings, and SEC filings",
+    "Alternative data including news, sentiment, ESG scores, and credit ratings",
+    "Economic indicators and calendar events",
+    "Supply chain intelligence and web traffic analytics",
+    "TypeScript support with type definitions",
+    "Simple API key authentication",
+    "Comprehensive error handling"
+  ],
+  "publicApiSurface": [
+    "Axion (main client class)",
+    "stocks.tickers()",
+    "stocks.ticker()",
+    "stocks.prices()",
+    "crypto.tickers()",
+    "crypto.ticker()",
+    "crypto.prices()",
+    "forex.tickers()",
+    "forex.prices()",
+    "futures.tickers()",
+    "futures.prices()",
+    "indices.tickers()",
+    "indices.prices()",
+    "etfs.fund()",
+    "etfs.holdings()",
+    "etfs.exposure()",
+    "profiles.profile()",
+    "profiles.statistics()",
+    "profiles.calendar()",
+    "financials.revenue()",
+    "financials.netIncome()",
+    "financials.metrics()",
+    "earnings.history()",
+    "earnings.trend()",
+    "filings.filings()",
+    "filings.forms()",
+    "insiders.funds()",
+    "insiders.institutions()",
+    "insiders.transactions()",
+    "news.general()",
+    "news.company()",
+    "sentiment.all()",
+    "sentiment.social()",
+    "esg.data()",
+    "credit.search()",
+    "credit.ratings()",
+    "supplyChain.customers()",
+    "supplyChain.suppliers()",
+    "webTraffic.traffic()",
+    "econ.search()",
+    "econ.dataset()",
+    "econ.calendar()"
+  ]
+}
